@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using TecChallenge.Domain.Interfaces;
 
 namespace TecChallenge.Application.Extensions;
 

@@ -2,18 +2,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Web;
-using Asp.Versioning;
 using IdentityModel;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using TecChallenge.Application.Controllers;
 using TecChallenge.Application.Extensions;
-using TecChallenge.Domain.Interfaces;
-using TecChallenge.Shared.Models.DTOs;
-using TecChallenge.Shared.Models.Generics;
+using TecChallenge.Domain.Entities;
+using TecChallenge.Shared.Models.Dtos;
 
 namespace TecChallenge.Application.V1.Controllers;
 
@@ -24,7 +20,6 @@ namespace TecChallenge.Application.V1.Controllers;
 public class AuthController(
     INotifier notifier,
     IUser appUser,
-    ILocalizationRecordRepository localizationRecordRepository,
     IHttpContextAccessor httpContextAccessor,
     IWebHostEnvironment webHostEnvironment,
     ApplicationSignInManager applicationSignInManager,
@@ -32,8 +27,9 @@ public class AuthController(
     RoleManager<ApplicationRole> roleManager,
     IOptions<JwtOptions> jwtOptions,
     IOptions<UrlConfiguration> urlConfiguration,
-    IEmailService emailService)
-    : MainController(notifier, appUser, localizationRecordRepository, httpContextAccessor, webHostEnvironment)
+    IEmailService emailService,
+    IUserLibraryService userLibraryService)
+    : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
     private readonly UrlConfiguration _urlConfiguration = urlConfiguration.Value;
@@ -45,21 +41,21 @@ public class AuthController(
     /// <response code="200">Success</response>
     /// <response code="403">Access denied</response>
     [HttpGet]
-    [ClaimsAuthorize("Auth", "GetAll")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public ActionResult<Root<IEnumerable<UserDto>>> GetAllUsers()
     {
         var listUserViewModel = userManager
             .Users.ToAsyncEnumerable()
-            .SelectAwait(async user => new UserDto()
+            .SelectAwait(async user => new UserDto
             {
                 Id = user.Id,
                 Username = user.UserName,
                 Email = user.Email,
-                Role = (await GetRoleNameAsync(user)),
+                Role = await GetRoleNameAsync(user),
                 IsDeleted = user.IsDeleted,
-                FirstAccess = user.FirstAccess,
+                FirstAccess = user.FirstAccess
             })
             .ToEnumerable();
 
@@ -75,7 +71,7 @@ public class AuthController(
     /// <response code="403">Access denied</response>
     /// <response code="404">User not found</response>
     [HttpGet("{id:guid}")]
-    [ClaimsAuthorize("Auth", "GetById")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -134,8 +130,6 @@ public class AuthController(
             await userManager.GeneratePasswordResetTokenAsync(user)
         );
 
-        var localizedStrings = await GetLocalizedStrings(nameof(AuthController));
-
         var passwordResetUrl =
             $"{_urlConfiguration.UrlPortal}/auth/reset-password/validate?email="
             + email
@@ -144,16 +138,11 @@ public class AuthController(
 
         var template = await GetTemplateFile();
 
-        var notification = localizedStrings?.FirstOrDefault(x => x.Key == "Notification")?.Text;
-        var message = localizedStrings
-            ?.FirstOrDefault(x => x.Key == "SendLinkPasswordReset")
-            ?.Text;
-        var title = localizedStrings?.FirstOrDefault(x => x.Key == "TitlePasswordReset")?.Text;
-        var successMessage = localizedStrings
-            ?.FirstOrDefault(x => x.Key == "SentPasswordReset")
-            ?.Text;
-
-        var failMessage = localizedStrings?.FirstOrDefault(x => x.Key == "FailEmail")?.Text;
+        const string notification = "Password Reset Request";
+        const string message = $"Please reset your password by clicking here: <a href='[LINK]'>Reset Password</a>";
+        const string title = "Password Reset Instructions";
+        const string successMessage = "Password reset link has been sent to your email.";
+        const string failMessage = "Failed to send password reset email.";
 
         template = template
             .Replace("[NOTIFICATION]", notification)
@@ -170,7 +159,7 @@ public class AuthController(
         if (resultEmail) return CustomResponse(successMessage);
 
         NotifyError(failMessage ?? string.Empty);
-        return CustomResponse<string>();
+        return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -203,8 +192,6 @@ public class AuthController(
     {
         if (!ModelState.IsValid) return CustomModelStateResponse<string>(ModelState);
 
-        var localizedStrings = await GetLocalizedStrings(nameof(AuthController));
-
         var user = await FindUserByEmailAsync(model.Email);
 
         if (user == null)
@@ -219,16 +206,10 @@ public class AuthController(
         {
             var template = await GetTemplateFile();
 
-            var notification = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "Notification")
-                ?.Text;
-            var message = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "UserPasswordReset")
-                ?.Text;
-            var title = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "TitlePasswordReset")
-                ?.Text;
-            var failMessage = localizedStrings?.FirstOrDefault(x => x.Key == "FailEmail")?.Text;
+            const string notification = "Password Reset Confirmation";
+            const string message = "Your password has been successfully reset.";
+            const string title = "Password Reset Complete";
+            const string failMessage = "Failed to send password reset confirmation email.";
 
             template = template
                 .Replace("[NOTIFICATION]", notification)
@@ -244,12 +225,12 @@ public class AuthController(
 
             if (resultEmail) return CustomResponse(message);
 
-            NotifyError(failMessage ?? "Failed to send email");
-            return CustomResponse<string>();
+            NotifyError(failMessage);
+            return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
         }
 
         result.Errors.ToList().ForEach(error => NotifyError(error.Description));
-        return CustomResponse<string>();
+        return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -267,8 +248,6 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Root<string>>> ConfirmEmail(string email)
     {
-        var localizedStrings = await GetLocalizedStrings(nameof(AuthController));
-
         var user = await FindUserByEmailAsync(email);
 
         if (user == null)
@@ -279,8 +258,8 @@ public class AuthController(
 
         if (user.EmailConfirmed)
         {
-            NotifyError(localizedStrings?.FirstOrDefault(x => x.Key == "UserEmailConfirmed")?.Text);
-            return CustomResponse<string>();
+            NotifyError("Email already confirmed.");
+            return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
         }
 
         var token = HttpUtility.UrlEncode(
@@ -295,18 +274,11 @@ public class AuthController(
 
         var template = await GetTemplateFile();
 
-        var notification = localizedStrings?.FirstOrDefault(x => x.Key == "Notification")?.Text;
-        var message = localizedStrings
-            ?.FirstOrDefault(x => x.Key == "SendLinkEmailConfirmation")
-            ?.Text;
-        var title = localizedStrings
-            ?.FirstOrDefault(x => x.Key == "TitleEmailConfirmation")
-            ?.Text;
-        var successMessage = localizedStrings
-            ?.FirstOrDefault(x => x.Key == "SentEmailConfirmation")
-            ?.Text;
-
-        var failMessage = localizedStrings?.FirstOrDefault(x => x.Key == "FailEmail")?.Text;
+        const string notification = "Email Confirmation Request";
+        const string message = $"Please confirm your email by clicking here: <a href='[LINK]'>Confirm Email</a>";
+        const string title = "Email Confirmation Instructions";
+        const string successMessage = "Confirmation link has been sent to your email.";
+        const string failMessage = "Failed to send confirmation email.";
 
         template = template
             .Replace("[NOTIFICATION]", notification)
@@ -322,8 +294,8 @@ public class AuthController(
 
         if (resultEmail) return CustomResponse(successMessage);
 
-        NotifyError(failMessage ?? string.Empty);
-        return CustomResponse<string>();
+        NotifyError(failMessage);
+        return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -341,8 +313,6 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Root<string>>> ConfirmEmail(ConfirmEmailDto model)
     {
-        var localizedStrings = await GetLocalizedStrings(nameof(AuthController));
-
         var user = await FindUserByEmailAsync(model.Email);
 
         if (user == null)
@@ -353,8 +323,8 @@ public class AuthController(
 
         if (user.EmailConfirmed)
         {
-            NotifyError(localizedStrings?.FirstOrDefault(x => x.Key == "UserEmailConfirmed")?.Text);
-            return CustomResponse<string>();
+            NotifyError("User email already confirmed");
+            return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
         }
 
         var result = await userManager.ConfirmEmailAsync(user, model.Token);
@@ -363,19 +333,11 @@ public class AuthController(
         {
             var template = await GetTemplateFile();
 
-            var notification = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "Notification")
-                ?.Text;
-            var message = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "SuccessConfirmEmail")
-                ?.Text;
-            var title = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "TitleEmailConfirmation")
-                ?.Text;
-            var successMessage = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "SuccessConfirmEmail")
-                ?.Text;
-            var failMessage = localizedStrings?.FirstOrDefault(x => x.Key == "FailEmail")?.Text;
+            const string notification = "Email Confirmed";
+            const string message = "Your email has been successfully confirmed.";
+            const string title = "Email Confirmation Complete";
+            const string successMessage = "Email confirmed successfully.";
+            const string failMessage = "Failed to send confirmation email.";
 
             template = template
                 .Replace("[NOTIFICATION]", notification)
@@ -383,7 +345,7 @@ public class AuthController(
                 .Replace("[YEAR]", DateTime.UtcNow.Year.ToString());
 
             var resultEmail = await emailService.SendAsync(
-                subject: title ?? string.Empty,
+                subject: title,
                 body: template,
                 recipient: user.Email,
                 env: WebHostEnvironment.EnvironmentName
@@ -391,12 +353,12 @@ public class AuthController(
 
             if (resultEmail) return CustomResponse(successMessage);
 
-            NotifyError(failMessage ?? string.Empty);
-            return CustomResponse<string>();
+            NotifyError(failMessage);
+            return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
         }
 
         result.Errors?.ToList().ForEach(error => NotifyError(error.Description));
-        return CustomResponse<string>();
+        return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -424,7 +386,6 @@ public class AuthController(
     /// <response code="400">Badly formatted object or error during account creation</response>
     /// <response code="403">Access denied</response>
     [HttpPost("register")]
-    [ClaimsAuthorize("Auth", "Add")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -437,10 +398,8 @@ public class AuthController(
             UserName = model.Email,
             Email = model.Email,
             IsDeleted = false,
-            FirstAccess = true,
+            FirstAccess = true
         };
-
-        var localizedStrings = await GetLocalizedStrings(nameof(AuthController));
 
         var password = GenerateRandomPassword();
 
@@ -454,26 +413,19 @@ public class AuthController(
 
             var resultUserClaims = await userManager.AddClaimsAsync(user, claims);
 
-            if (resultRole.Succeeded && resultUserClaims.Succeeded)
+            var userLibrary = UserLibrary.Create(user.Id);
+
+            var resultUserLibrary = await userLibraryService.AddAsync(userLibrary);
+
+            if (resultRole.Succeeded && resultUserClaims.Succeeded && resultUserLibrary)
             {
                 var template = await GetTemplateFile();
 
-                var notification = localizedStrings
-                    ?.FirstOrDefault(x => x.Key == "Notification")
-                    ?.Text;
-                var message = localizedStrings
-                    ?.FirstOrDefault(x => x.Key == "UserNewAccount")
-                    ?.Text;
-                var title = localizedStrings
-                    ?.FirstOrDefault(x => x.Key == "TitleUserNewAccount")
-                    ?.Text;
-                var successMessage = localizedStrings
-                    ?.FirstOrDefault(x => x.Key == "SentUserNewAcoount")
-                    ?.Text;
-
-                var failMessage = localizedStrings
-                    ?.FirstOrDefault(x => x.Key == "FailEmail")
-                    ?.Text;
+                const string notification = "New Account Created";
+                var message = $"Your new account has been created. Temporary password: {password}";
+                const string title = "Welcome to Our Platform";
+                const string successMessage = "Account created and email sent successfully.";
+                const string failMessage = "Failed to send account creation email.";
 
                 template = template
                     .Replace("[NOTIFICATION]", notification)
@@ -481,7 +433,7 @@ public class AuthController(
                     .Replace("[YEAR]", DateTime.UtcNow.Year.ToString());
 
                 var resultEmail = await emailService.SendAsync(
-                    subject: title ?? string.Empty,
+                    subject: title,
                     body: template,
                     recipient: user.Email,
                     env: WebHostEnvironment.EnvironmentName
@@ -489,16 +441,16 @@ public class AuthController(
 
                 if (resultEmail) return CustomResponse(successMessage);
 
-                NotifyError(failMessage ?? string.Empty);
-                return CustomResponse<string>();
+                NotifyError(failMessage);
+                return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
             }
 
-            resultRole.Errors?.ToList().ForEach(error => NotifyError(error.Description));
-            resultUserClaims.Errors?.ToList().ForEach(error => NotifyError(error.Description));
+            resultRole.Errors.ToList().ForEach(error => NotifyError(error.Description));
+            resultUserClaims.Errors.ToList().ForEach(error => NotifyError(error.Description));
         }
 
         resultUser.Errors.ToList().ForEach(error => NotifyError(error.Description));
-        return CustomResponse<string>();
+        return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -516,13 +468,9 @@ public class AuthController(
     {
         if (!ModelState.IsValid) return CustomModelStateResponse<LoginResponseDto>(ModelState);
 
-        var localizedStrings = await GetLocalizedStrings(nameof(AuthController));
-
-        var userNotAllowed = localizedStrings
-            ?.FirstOrDefault(x => x.Key == "UserNotAllowed")
-            ?.Text;
-        var userBlocked = localizedStrings?.FirstOrDefault(x => x.Key == "UserBlocked")?.Text;
-        var userInvalid = localizedStrings?.FirstOrDefault(x => x.Key == "UserInvalid")?.Text;
+        const string userNotAllowed = "User not allowed. Please contact support.";
+        const string userBlocked = "Account temporarily locked due to multiple failed attempts.";
+        const string userInvalid = "Invalid email or password.";
 
         var result = await applicationSignInManager.PasswordSignInAsync(
             model.Email,
@@ -537,19 +485,19 @@ public class AuthController(
 
         if (result.IsNotAllowed)
         {
-            error = userNotAllowed ?? "User not allowed. Please contact those responsible";
+            error = userNotAllowed;
         }
         else if (result.IsLockedOut)
         {
-            error = userBlocked ?? "User temporarily blocked due to invalid attempts";
+            error = userBlocked;
         }
         else
         {
-            error = userInvalid ?? "Incorrect username and/or password";
+            error = userInvalid;
         }
 
         NotifyError(error);
-        return CustomResponse<LoginResponseDto>();
+        return CustomResponse<LoginResponseDto>(statusCode: HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -563,16 +511,12 @@ public class AuthController(
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Root<LoginResponseDto>>> RefreshSession(RefreshTokenViewModel model)
+    public async Task<ActionResult<Root<LoginResponseDto>>> RefreshSession(RefreshTokenDto model)
     {
         if (!ModelState.IsValid) return CustomModelStateResponse<LoginResponseDto>(ModelState);
 
-        var localizedStrings = await GetLocalizedStrings(nameof(AuthController));
-
-        var invalidToken = localizedStrings?.FirstOrDefault(x => x.Key == "InvalidToken")?.Text;
-        var userLockedOut = localizedStrings
-            ?.FirstOrDefault(x => x.Key == "UserLockedOut")
-            ?.Text;
+        const string invalidToken = "Invalid or expired token.";
+        const string userLockedOut = "Account is locked. Please contact support.";
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var validationParameters = GetValidationParameters();
@@ -585,7 +529,7 @@ public class AuthController(
         if (!validatedToken.IsValid)
         {
             NotifyError(invalidToken ?? "Invalid token");
-            return CustomResponse<LoginResponseDto>();
+            return CustomResponse<LoginResponseDto>(statusCode: HttpStatusCode.BadRequest);
         }
 
         var user = await userManager.FindByIdAsync(
@@ -595,8 +539,8 @@ public class AuthController(
         if (!await userManager.IsLockedOutAsync(user))
             return CustomResponse(await GenerateCredentialsAsync(user.Email));
 
-        NotifyError(userLockedOut ?? "User is blocked");
-        return CustomResponse<LoginResponseDto>();
+        NotifyError(userLockedOut);
+        return CustomResponse<LoginResponseDto>(statusCode: HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -635,8 +579,6 @@ public class AuthController(
             return CustomResponse<string>(statusCode: HttpStatusCode.NotFound);
         }
 
-        var localizedStrings = await GetLocalizedStrings(nameof(AuthController));
-
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
         var result = await userManager.ResetPasswordAsync(user, token, model.Password);
@@ -653,19 +595,11 @@ public class AuthController(
                 await userManager.GenerateEmailConfirmationTokenAsync(user)
             );
 
-            var notification = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "Notification")
-                ?.Text;
-            var message = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "SendLinkEmailConfirmation")
-                ?.Text;
-            var title = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "TitleEmailConfirmation")
-                ?.Text;
-            var successMessage = localizedStrings
-                ?.FirstOrDefault(x => x.Key == "SentEmailConfirmation")
-                ?.Text;
-            var failMessage = localizedStrings?.FirstOrDefault(x => x.Key == "FailEmail")?.Text;
+            const string notification = "Email Confirmation Required";
+            const string message = $"Please confirm your email by clicking here: <a href='[LINK]'>Confirm Email</a>";
+            const string title = "Confirm Your Email";
+            const string successMessage = "Confirmation email sent successfully.";
+            const string failMessage = "Failed to send confirmation email.";
 
             var confirmEmailUrl =
                 $"{_urlConfiguration.UrlPortal}/auth/confirm-email/validate?email="
@@ -679,7 +613,7 @@ public class AuthController(
                 .Replace("[YEAR]", DateTime.UtcNow.Year.ToString());
 
             var resultEmail = await emailService.SendAsync(
-                subject: title ?? string.Empty,
+                subject: title,
                 body: template,
                 recipient: user.Email,
                 env: WebHostEnvironment.EnvironmentName
@@ -688,11 +622,11 @@ public class AuthController(
             if (resultEmail) return CustomResponse(successMessage);
 
             NotifyError(failMessage ?? string.Empty);
-            return CustomResponse<string>();
+            return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
         }
 
         result.Errors?.ToList().ForEach(error => NotifyError(error.Description));
-        return CustomResponse<string>();
+        return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -726,7 +660,6 @@ public class AuthController(
     /// <response code="400">Poorly formatted object or failure to update user information</response>
     /// <response code="404">User not found</response>
     [HttpPut("{id:guid}")]
-    [ClaimsAuthorize("Auth", "Update")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -735,8 +668,8 @@ public class AuthController(
     {
         if (id != model.Id)
         {
-            NotifyError("The ids provided are not the same");
-            return CustomResponse<string>();
+            NotifyError("Provided IDs do not match.");
+            return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
         }
 
         if (!ModelState.IsValid) return CustomModelStateResponse<string>(ModelState);
@@ -803,7 +736,7 @@ public class AuthController(
             await userManager.RemoveClaimAsync(user, oldClaim);
         }
 
-        return CustomResponse<string>(statusCode:HttpStatusCode.NoContent);
+        return CustomResponse<string>(statusCode: HttpStatusCode.NoContent);
     }
 
     /// <summary>
@@ -816,7 +749,7 @@ public class AuthController(
     /// <response code="400">Failed to delete user</response>
     /// <response code="404">User not found</response>
     [HttpDelete("{id:guid}")]
-    [ClaimsAuthorize("Auth", "Delete")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -835,15 +768,16 @@ public class AuthController(
 
         var result = await userManager.UpdateAsync(user);
 
-        if (!result.Succeeded) result.Errors.ToList().ForEach(x => NotifyError(x.Description));
+        if (result.Succeeded) return CustomResponse<string>(statusCode: HttpStatusCode.NoContent);
 
-        return CustomResponse<string>(statusCode: HttpStatusCode.NoContent);
+        result.Errors.ToList().ForEach(x => NotifyError(x.Description));
+        return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
     }
 
     private async Task<LoginResponseDto> GenerateCredentialsAsync(string email)
     {
         var user = await userManager.FindByEmailAsync(email);
-        var role = await roleManager.FindByNameAsync((await GetRoleNameAsync(user)));
+        var role = await roleManager.FindByNameAsync(await GetRoleNameAsync(user));
 
         var userClaims = await userManager.GetClaimsAsync(user);
         var roleClaims = await roleManager.GetClaimsAsync(role);
@@ -851,14 +785,15 @@ public class AuthController(
         var expirationDateAccessToken = DateTime.UtcNow.AddSeconds(
             _jwtOptions.AccessTokenExpiration
         );
+
         var expirationDateRefreshToken = DateTime.UtcNow.AddSeconds(
             _jwtOptions.RefreshTokenExpiration
         );
 
-        var accessToken = GenerateToken(user, expirationDateAccessToken, roleClaims);
-        var refreshToken = GenerateToken(user, expirationDateRefreshToken);
+        var accessToken = GenerateToken(user, expirationDateAccessToken, role, roleClaims);
+        var refreshToken = GenerateToken(user, expirationDateRefreshToken, role);
 
-        return new LoginResponseDto()
+        return new LoginResponseDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
@@ -866,12 +801,12 @@ public class AuthController(
             {
                 Id = user.Id,
                 Email = email,
-                RoleClaims = roleClaims.Select(c => new ClaimDto()
+                RoleClaims = roleClaims.Select(c => new ClaimDto
                 {
                     Type = c.Type,
                     Value = c.Value,
                 }),
-                UserClaims = userClaims.Select(c => new ClaimDto()
+                UserClaims = userClaims.Select(c => new ClaimDto
                 {
                     Type = c.Type,
                     Value = c.Value,
@@ -881,22 +816,23 @@ public class AuthController(
                     new ClaimDto { Type = "Role", Value = role.Name },
                     new ClaimDto { Type = "Level", Value = role.Level.ToString() },
                     new ClaimDto { Type = "FirstAccess", Value = user.FirstAccess.ToString() },
-                    new ClaimDto { Type = "EmailConfirmed", Value = user.EmailConfirmed.ToString() },
-                ],
-            },
+                    new ClaimDto { Type = "EmailConfirmed", Value = user.EmailConfirmed.ToString() }
+                ]
+            }
         };
     }
 
     private string GenerateToken(
         ApplicationUser user,
         DateTime expirationDate,
+        ApplicationRole role,
         IList<Claim>? roleClaims = null
     )
     {
         var defaultClaims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(JwtRegisteredClaimNames.Email, user.Email ?? throw new InvalidOperationException()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()),
             new(
@@ -904,6 +840,7 @@ public class AuthController(
                 ToUnixEpochDate(DateTime.UtcNow).ToString(),
                 ClaimValueTypes.Integer64
             ),
+            new("role", role.Name ?? throw new InvalidOperationException())
         };
 
         var jwt = new JwtSecurityToken(
@@ -931,7 +868,7 @@ public class AuthController(
             ValidAudience = _jwtOptions.Audience,
             ValidateLifetime = true,
             RequireExpirationTime = true,
-            ClockSkew = TimeSpan.Zero,
+            ClockSkew = TimeSpan.Zero
         };
 
     private async Task<ApplicationUser?> FindUserByEmailAsync(string email) =>
@@ -954,14 +891,14 @@ public class AuthController(
 
     private static string GenerateRandomPassword(PasswordOptions? opts = null)
     {
-        opts ??= new PasswordOptions()
+        opts ??= new PasswordOptions
         {
             RequiredLength = 8,
             RequiredUniqueChars = 4,
             RequireDigit = true,
             RequireLowercase = true,
             RequireNonAlphanumeric = true,
-            RequireUppercase = true,
+            RequireUppercase = true
         };
 
         string[] randomChars =
@@ -969,7 +906,7 @@ public class AuthController(
             "ABCDEFGHJKLMNOPQRSTUVWXYZ",
             "abcdefghijkmnopqrstuvwxyz",
             "0123456789",
-            "!@$?_-",
+            "!@$?_-"
         ];
 
         CryptoRandom rand = new();

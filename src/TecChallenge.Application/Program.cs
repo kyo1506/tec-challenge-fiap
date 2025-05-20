@@ -59,6 +59,8 @@ if (app.Environment.IsDevelopment())
         app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
     app.UseSwaggerConfig(apiVersionDescriptionProvider);
+
+    await app.InitializeIdentityDatabase();
 }
 
 app.UseRequestLocalization(

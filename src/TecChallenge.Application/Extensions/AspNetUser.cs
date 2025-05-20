@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using TecChallenge.Domain.Interfaces;
 
 namespace TecChallenge.Application.Extensions;
 

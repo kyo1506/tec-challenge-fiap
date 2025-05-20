@@ -44,7 +44,7 @@ public class EmailService(IConfiguration configuration) : IEmailService
         var emailMessage = new MimeMessage();
         var fromAddress = configuration["EmailConfiguration:Username"];
         var mailboxName =
-            env == "Production" ? "Horizon - Maestro" : $"Horizon - Maestro ({env})";
+            env == "Production" ? "Tech Challenge" : $"Tech Challenge - ({env})";
 
         emailMessage.From.Add(new MailboxAddress(mailboxName, fromAddress));
         emailMessage.To.Add(MailboxAddress.Parse(recipient));
@@ -82,7 +82,7 @@ public class EmailService(IConfiguration configuration) : IEmailService
             ? SecureSocketOptions.SslOnConnect
             : SecureSocketOptions.StartTls;
 
-        // await smtpClient.ConnectAsync(host, port, secureOption);
+        await smtpClient.ConnectAsync(host, port, secureOption);
         await smtpClient.AuthenticateAsync(username, password);
     }
 }

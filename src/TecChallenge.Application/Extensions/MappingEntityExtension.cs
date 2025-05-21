@@ -15,7 +15,7 @@ public static class MappingEntityExtension
             Price = game.Price
         };
     }
-    
+
     public static Game MapToEntity(this GameUpdateRequest game)
     {
         return new Game
@@ -26,18 +26,30 @@ public static class MappingEntityExtension
         };
     }
     
-    public static Promotion MapToEntity(this PromotionRequest promotion)
+    public static Promotion MapToEntity(this PromotionAddRequest promotion)
     {
         return new Promotion
         {
             Name = promotion.Name,
             StartDate = promotion.StartDate,
             EndDate = promotion.EndDate,
-            GamesOnSale = promotion.GamesOnSale.Select(x => x.MapToEntity()).ToList()
+            GamesOnSale = promotion.GamesOnSale
+                .Select(x => x.MapToEntity())
+                .ToList()
         };
     }
 
-    private static PromotionGame MapToEntity(this PromotionGameRequest promotionGame)
+    public static Promotion MapToEntity(this PromotionUpdateRequest promotion)
+    {
+        return new Promotion
+        {
+            Name = promotion.Name,
+            StartDate = promotion.StartDate,
+            EndDate = promotion.EndDate
+        };
+    }
+
+    private static PromotionGame MapToEntity(this PromotionGameAddRequest promotionGame)
     {
         return new PromotionGame
         {

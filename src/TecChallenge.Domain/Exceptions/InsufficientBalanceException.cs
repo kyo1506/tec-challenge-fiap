@@ -11,7 +11,7 @@ public class InsufficientBalanceException : DomainException
     }
 
     public InsufficientBalanceException(decimal currentBalance, decimal requiredAmount) 
-        : base($"Saldo insuficiente. Disponível: {currentBalance:C}, Necessário: {requiredAmount:C}")
+        : base($"Insufficient balance. Available: {currentBalance:C}, Required: {requiredAmount:C}")
     {
         CurrentBalance = currentBalance;
         RequiredAmount = requiredAmount;

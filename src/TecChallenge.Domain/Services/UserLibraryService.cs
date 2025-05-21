@@ -22,7 +22,7 @@ public class UserLibraryService(
 
             if (userLibraryRepository.WhereAsync(x => x.UserId == model.UserId).Result.Any())
             {
-                Notify("Já existe uma biblioteca criada para este usuario");
+                Notify("There is already a library created for this user");
                 return false;
             }
 

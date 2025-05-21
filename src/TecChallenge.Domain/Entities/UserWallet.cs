@@ -21,7 +21,7 @@ public class UserWallet(Guid userId) : Entity
             gameId: game.Id,
             promotionGameId: promotionGame?.Id,
             amount: -finalPrice,
-            description: $"Compra: {game.Name}" +
+            description: $"Purchase: {game.Name}" +
                          (promotionGame != null ? $" ({promotionGame.DiscountPercentage}% off)" : ""),
             type: ETransactionType.Purchase
         );
@@ -39,7 +39,7 @@ public class UserWallet(Guid userId) : Entity
             gameId: game.Id,
             promotionGameId: null,
             amount: refundAmount,
-            description: $"Reembolso: {game.Name}",
+            description: $"Refund: {game.Name}",
             type: ETransactionType.Refund
         );
         
@@ -48,14 +48,14 @@ public class UserWallet(Guid userId) : Entity
 
     public void Deposit(decimal amount)
     {
-        ValidateAmount(amount, "depósito");
+        ValidateAmount(amount, "deposit");
 
         Balance += amount;
         RegisterTransaction(
             gameId: null,
             promotionGameId: null,
             amount: amount,
-            description: "Depósito de créditos",
+            description: "Credit deposit",
             type: ETransactionType.Deposit
         );
     }
@@ -70,7 +70,7 @@ public class UserWallet(Guid userId) : Entity
             gameId: null,
             promotionGameId: null,
             amount: -amount,
-            description: "Saque de créditos",
+            description: "Credit withdrawal",
             type: ETransactionType.Withdrawal
         );
     }
@@ -85,7 +85,7 @@ public class UserWallet(Guid userId) : Entity
     private void ValidatePurchase(decimal finalPrice)
     {
         if (finalPrice <= 0)
-            throw new DomainException("Valor da compra inválido");
+            throw new DomainException("Invalid purchase amount");
 
         ValidateSufficientBalance(finalPrice);
     }
@@ -93,13 +93,13 @@ public class UserWallet(Guid userId) : Entity
     private static void ValidateRefund(decimal amount)
     {
         if (amount <= 0)
-            throw new DomainException("Valor de reembolso inválido");
+            throw new DomainException("Invalid refund amount");
     }
 
     private static void ValidateAmount(decimal amount, string operationType)
     {
         if (amount <= 0)
-            throw new DomainException($"Valor para {operationType} deve ser positivo");
+            throw new DomainException($"Value for {operationType} must be positive");
     }
 
     private void ValidateSufficientBalance(decimal amount)

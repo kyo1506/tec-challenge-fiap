@@ -790,8 +790,8 @@ public class AuthController(
             _jwtOptions.RefreshTokenExpiration
         );
 
-        var accessToken = GenerateToken(user, expirationDateAccessToken, role, roleClaims);
-        var refreshToken = GenerateToken(user, expirationDateRefreshToken, role);
+        var accessToken = GenerateAccessToken(user, expirationDateAccessToken, role, roleClaims);
+        var refreshToken = GenerateRefreshToken(user, expirationDateRefreshToken);
 
         return new LoginResponseDto
         {
@@ -801,17 +801,9 @@ public class AuthController(
             {
                 Id = user.Id,
                 Email = email,
-                RoleClaims = roleClaims.Select(c => new ClaimDto
-                {
-                    Type = c.Type,
-                    Value = c.Value,
-                }),
-                UserClaims = userClaims.Select(c => new ClaimDto
-                {
-                    Type = c.Type,
-                    Value = c.Value,
-                }),
-                UserConfig =
+                RoleClaims = roleClaims.Select(c => new ClaimDto { Type = c.Type, Value = c.Value }),
+                UserClaims = userClaims.Select(c => new ClaimDto { Type = c.Type, Value = c.Value }),
+                UserConfig = 
                 [
                     new ClaimDto { Type = "Role", Value = role.Name },
                     new ClaimDto { Type = "Level", Value = role.Level.ToString() },
@@ -822,12 +814,11 @@ public class AuthController(
         };
     }
 
-    private string GenerateToken(
+    private string GenerateAccessToken(
         ApplicationUser user,
         DateTime expirationDate,
         ApplicationRole role,
-        IList<Claim>? roleClaims = null
-    )
+        IList<Claim> roleClaims)
     {
         var defaultClaims = new List<Claim>
         {
@@ -835,20 +826,14 @@ public class AuthController(
             new(JwtRegisteredClaimNames.Email, user.Email ?? throw new InvalidOperationException()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()),
-            new(
-                JwtRegisteredClaimNames.Iat,
-                ToUnixEpochDate(DateTime.UtcNow).ToString(),
-                ClaimValueTypes.Integer64
-            ),
+            new(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64),
             new("role", role.Name ?? throw new InvalidOperationException())
         };
 
         var jwt = new JwtSecurityToken(
             issuer: _jwtOptions.Issuer,
             audience: _jwtOptions.Audience,
-            claims: roleClaims != null && roleClaims.Any()
-                ? defaultClaims.Concat(roleClaims)
-                : defaultClaims,
+            claims: defaultClaims.Concat(roleClaims),
             notBefore: DateTime.UtcNow,
             expires: expirationDate,
             signingCredentials: _jwtOptions.SigningCredentials
@@ -856,6 +841,28 @@ public class AuthController(
 
         return new JwtSecurityTokenHandler().WriteToken(jwt);
     }
+
+    private string GenerateRefreshToken(ApplicationUser user, DateTime expirationDate)
+    {
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("token_type", "refresh")
+        };
+
+        var jwt = new JwtSecurityToken(
+            issuer: _jwtOptions.Issuer,
+            audience: _jwtOptions.Audience,
+            claims: claims,
+            notBefore: DateTime.UtcNow,
+            expires: expirationDate,
+            signingCredentials: _jwtOptions.SigningCredentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(jwt);
+    }
+
 
     private TokenValidationParameters GetValidationParameters() =>
         new()

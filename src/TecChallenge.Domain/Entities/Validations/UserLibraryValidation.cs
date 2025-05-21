@@ -8,6 +8,6 @@ public class UserLibraryValidation : AbstractValidator<UserLibrary>
     {
         RuleFor(c => c.UserId)
             .NotEmpty()
-            .WithMessage("O campo {PropertyName} precisa ser fornecido");
+            .WithMessage("The {PropertyName} field needs to be supplied");
     }
 }

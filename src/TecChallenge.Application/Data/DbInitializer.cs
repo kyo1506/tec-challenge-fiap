@@ -12,11 +12,9 @@ public static class DbInitializer
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager)
     {
-        // Verifica se o banco de dados existe e aplica migrations pendentes
         await authDbContext.Database.MigrateAsync();
         await appDbContext.Database.MigrateAsync();
 
-        // Verifica se já existem dados no banco
         if (await authDbContext.Users.AnyAsync())
         {
             return;
@@ -73,7 +71,7 @@ public static class DbInitializer
             var result = await userManager.CreateAsync(user, "Default@123");
             if (!result.Succeeded)
             {
-                throw new Exception($"Erro ao criar usuário: {string.Join(", ", result.Errors)}");
+                throw new Exception($"Error creating user: {string.Join(",", result.Errors)}");
             }
 
             context.UserLibraries.Add(new UserLibrary { UserId = user.Id });

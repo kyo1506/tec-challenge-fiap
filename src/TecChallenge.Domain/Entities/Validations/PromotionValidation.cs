@@ -8,26 +8,26 @@ public class PromotionValidation : AbstractValidator<Promotion>
     {
         RuleFor(c => c.Name)
             .NotEmpty()
-            .WithMessage("O campo {PropertyName} precisa ser fornecido")
+            .WithMessage("The {PropertyName} field needs to be supplied")
             .Length(2, 100)
             .WithMessage(
-                "O campo {PropertyName} precisa ter entre {MinLength} e {MaxLength} caracteres"
+                "The {PropertyName} field needs to have between {MinLength} and {MaxLength} characters"
             );
 
         RuleFor(c => c.StartDate)
             .NotEmpty()
-            .WithMessage("O campo {PropertyName} precisa ser fornecido")
-            .GreaterThanOrEqualTo(c => c.EndDate)
-            .WithMessage("A data inicial deve ser menor ou igual a data final");
+            .WithMessage("The {PropertyName} field needs to be supplied")
+            .LessThanOrEqualTo(c => c.EndDate)
+            .WithMessage("The start date must be less than or equal to the end date");
 
         RuleFor(c => c.EndDate)
             .NotEmpty()
-            .WithMessage("O campo {PropertyName} precisa ser fornecido");
+            .WithMessage("The {PropertyName} field needs to be supplied")
+            .GreaterThan(DateTime.Now)
+            .WithMessage("Promotions that are closed cannot be edited");
 
         RuleFor(c => c.GamesOnSale)
             .NotEmpty()
-            .WithMessage("O campo {PropertyName} precisa ser fornecido")
-            .Must(g => g.Count >= 1)
-            .WithMessage("A lista deve conter pelo menos um item");
+            .WithMessage("The {PropertyName} field needs to be supplied");
     }
 }

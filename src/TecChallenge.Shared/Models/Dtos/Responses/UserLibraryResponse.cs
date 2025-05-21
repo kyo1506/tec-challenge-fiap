@@ -10,5 +10,5 @@ public class UserLibraryResponse
     
     public Guid UserId { get; set; }
     
-    public IEnumerable<LibraryItemDto> Items { get; set; } = [];
+    public IEnumerable<LibraryItemReponse> Items { get; set; } = [];
 }

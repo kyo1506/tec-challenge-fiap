@@ -11,7 +11,7 @@ public class PromotionNotApplicableException : DomainException
     }
 
     public PromotionNotApplicableException(Guid gameId, Guid promotionGameId) 
-        : base($"A promoção {promotionGameId} não é aplicável ao jogo {gameId}")
+        : base($"The promotion {promotionGameId} does not apply to the game {gameId}")
     {
         GameId = gameId;
         PromotionGameId = promotionGameId;

@@ -41,11 +41,16 @@ public class PromotionController(
     }
 
     [HttpPost]
-    public async Task<ActionResult<Root<PromotionResponse>>> AddPromotion(PromotionRequest model)
+    public async Task<ActionResult<Root<PromotionResponse>>> AddPromotion(PromotionAddRequest model)
     {
         if (!ModelState.IsValid) return CustomModelStateResponse<PromotionResponse>(ModelState);
 
         var entity = model.MapToEntity();
+
+        foreach (var game in entity.GamesOnSale)
+        {
+            game.PromotionId = entity.Id;
+        }
 
         var result = await promotionService.AddAsync(entity);
 
@@ -55,7 +60,7 @@ public class PromotionController(
     }
     
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Root<PromotionResponse>>> UpdatePromotion(Guid id, PromotionRequest model)
+    public async Task<ActionResult<Root<PromotionResponse>>> UpdatePromotion(Guid id, PromotionUpdateRequest model)
     {
         if (id != model.Id)
         {
@@ -86,5 +91,56 @@ public class PromotionController(
                 : CustomResponse<PromotionResponse>(statusCode: HttpStatusCode.NoContent);
 
         return CustomResponse<PromotionResponse>(statusCode: HttpStatusCode.NotFound);
+    }
+    
+    [HttpPost("{id:guid}/games")]
+    public async Task<ActionResult<Root<PromotionResponse>>> AddPromotion(PromotionAddRequest model)
+    {
+        if (!ModelState.IsValid) return CustomModelStateResponse<PromotionResponse>(ModelState);
+
+        var entity = model.MapToEntity();
+
+        foreach (var game in entity.GamesOnSale)
+        {
+            game.PromotionId = entity.Id;
+        }
+
+        var result = await promotionService.AddAsync(entity);
+
+        return result
+            ? CustomResponse(data: entity.MapToDto(), statusCode: HttpStatusCode.Created)
+            : CustomResponse<PromotionResponse>(statusCode: HttpStatusCode.BadRequest);
+    }
+    
+    [HttpPut("{promotionGameId:guid}/games/{gameId:guid}")]
+    public async Task<ActionResult<Root<PromotionGameResponse>>> UpdatePromotionGame(
+        Guid promotionGameId,
+        PromotionGameUpdateRequest model)
+    {
+        if (!ModelState.IsValid) 
+            return CustomModelStateResponse<PromotionGameResponse>(ModelState);
+
+        var updatedEntity = model.MapToEntity(promotionGame.Id);
+        var result = await promotionService.UpdatePromotionGameAsync(promotionGame.Id, updatedEntity);
+
+        if (result != null)
+            return !result.Value
+                ? CustomResponse<PromotionGameResponse>(statusCode: HttpStatusCode.BadRequest)
+                : CustomResponse<PromotionGameResponse>(statusCode: HttpStatusCode.NoContent);
+
+        return CustomResponse<PromotionGameResponse>(statusCode: HttpStatusCode.NotFound);
+    }
+
+    [HttpDelete("{promotionId:guid}/games/{gameId:guid}")]
+    public async Task<ActionResult<Root<PromotionGameResponse>>> RemoveGameFromPromotion(Guid promotionId, Guid gameId)
+    {
+        var result = await promotionService.DeletePromotionGameAsync(promotionGame.Id);
+
+        if (result != null)
+            return !result.Value
+                ? CustomResponse<PromotionGameResponse>(statusCode: HttpStatusCode.BadRequest)
+                : CustomResponse<PromotionGameResponse>(statusCode: HttpStatusCode.NoContent);
+
+        return CustomResponse<PromotionGameResponse>(statusCode: HttpStatusCode.NotFound);
     }
 }

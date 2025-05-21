@@ -29,9 +29,9 @@ public static class MappingDtoExtension
         };
     }
 
-    private static LibraryItemDto MapToDto(this LibraryItem item)
+    private static LibraryItemReponse MapToDto(this LibraryItem item)
     {
-        return new LibraryItemDto
+        return new LibraryItemReponse
         {
             Id = item.Id,
             GameId = item.GameId,

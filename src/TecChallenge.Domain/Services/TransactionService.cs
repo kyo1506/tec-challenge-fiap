@@ -36,7 +36,7 @@ public class TransactionService(
                     .GetPromotionGameById(promotionGameId.Value, gameId);
 
                 if (promotionGame == null)
-                    throw new PromotionNotApplicableException("Promoção não aplicável a este jogo");
+                    throw new PromotionNotApplicableException("Promotion not applicable to this game");
             }
 
             wallet.PurchaseGame(game, promotionGame, library);
@@ -73,16 +73,15 @@ public class TransactionService(
 
             var game = await gameRepository.FirstOrDefaultAsync(x => x.Id == gameId, true);
 
-            DomainException.ThrowIfNull(wallet, "Carteira não encontrada");
-            DomainException.ThrowIfNull(library, "Biblioteca não encontrada");
-            DomainException.ThrowIfNull(game, "Jogo não encontrado");
-
-            // Encontra a transação original de compra
+            DomainException.ThrowIfNull(wallet, "Wallet not found");
+            DomainException.ThrowIfNull(library, "Library not found");
+            DomainException.ThrowIfNull(game, "Game not found");
+            
             var originalTransaction = wallet.Transactions
                 .FirstOrDefault(t => t.GameId == gameId && t.Type == ETransactionType.Purchase);
 
             if (originalTransaction == null)
-                throw new DomainException("Transação de compra não encontrada");
+                throw new DomainException("Purchase transaction not found");
 
             wallet.RefundGame(game, Math.Abs(originalTransaction.Amount), library);
             
@@ -117,7 +116,7 @@ public class TransactionService(
         {
             var wallet = await walletRepository.FirstOrDefaultAsync(x => x.UserId == userId, true, x => x.Transactions);
 
-            DomainException.ThrowIfNull(wallet, "Carteira não encontrada");
+            DomainException.ThrowIfNull(wallet, "Wallet not found");
 
             wallet.Deposit(amount);
 
@@ -144,7 +143,7 @@ public class TransactionService(
         {
             var wallet = await walletRepository.FirstOrDefaultAsync(x => x.UserId == userId, true, x => x.Transactions);
 
-            DomainException.ThrowIfNull(wallet, "Carteira não encontrada");
+            DomainException.ThrowIfNull(wallet, "Wallet not found");
 
             wallet.Withdraw(amount);
 

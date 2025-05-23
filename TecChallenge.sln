@@ -15,13 +15,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TecChallenge.Infrastructure
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TecChallenge.Shared", "src\TecChallenge.Shared\TecChallenge.Shared.csproj", "{8E3AAB34-B07A-49F5-A7D5-EC656F7D066E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TecChallenge.Tests", "src\TecChallenge.Tests\TecChallenge.Tests.csproj", "{8BBBB154-A6DC-B069-9040-67213645CAA9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{81244297-EDF2-477F-B606-214A2E0EC82E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -44,6 +43,13 @@ Global
 		{8E3AAB34-B07A-49F5-A7D5-EC656F7D066E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E3AAB34-B07A-49F5-A7D5-EC656F7D066E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E3AAB34-B07A-49F5-A7D5-EC656F7D066E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BBBB154-A6DC-B069-9040-67213645CAA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BBBB154-A6DC-B069-9040-67213645CAA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BBBB154-A6DC-B069-9040-67213645CAA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BBBB154-A6DC-B069-9040-67213645CAA9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{81244297-EDF2-477F-B606-214A2E0EC82E} = {F3EA97CB-802E-42E5-9296-4626BEF4A909}
@@ -51,5 +57,8 @@ Global
 		{5E26ED05-1DDE-4DBE-8864-AE3A9C802C2D} = {F3EA97CB-802E-42E5-9296-4626BEF4A909}
 		{92A9DAA7-D499-40F2-9C11-B6E2F97D5D3C} = {F3EA97CB-802E-42E5-9296-4626BEF4A909}
 		{8E3AAB34-B07A-49F5-A7D5-EC656F7D066E} = {F3EA97CB-802E-42E5-9296-4626BEF4A909}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F692F871-6FD7-4FE2-BCD2-630883A19178}
 	EndGlobalSection
 EndGlobal

@@ -25,9 +25,5 @@ public class PromotionValidation : AbstractValidator<Promotion>
             .WithMessage("The {PropertyName} field needs to be supplied")
             .GreaterThan(DateTime.Now)
             .WithMessage("Promotions that are closed cannot be edited");
-
-        RuleFor(c => c.GamesOnSale)
-            .NotEmpty()
-            .WithMessage("The {PropertyName} field needs to be supplied");
     }
 }

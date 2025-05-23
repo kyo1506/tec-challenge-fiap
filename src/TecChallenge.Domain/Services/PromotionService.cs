@@ -73,6 +73,37 @@ public class PromotionService(
             throw;
         }
     }
+    
+    public async Task<bool?> DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        await using var transaction = await unitOfWork.BeginTransactionAsync(ct);
+
+        try
+        {
+            var promotion = await promotionRepository.FirstOrDefaultAsync(x => x.Id == id, true, x => x.GamesOnSale);
+
+            if (promotion == null)
+            {
+                Notify("Promotion not found");
+                return null;
+            }
+
+            if (promotion.GamesOnSale.Count != 0)
+            {
+                Notify("Promotion cannot be deleted");
+                return false;
+            }
+
+            promotionRepository.Delete(promotion);
+
+            return await unitOfWork.CommitAsync(ct);
+        }
+        catch
+        {
+            await unitOfWork.RollbackAsync(ct);
+            throw;
+        }
+    }
 
     public async Task<bool?> AddGamesOnSaleAsync(Guid id, List<PromotionGame> gamesOnSale,
         CancellationToken ct = default)
@@ -108,7 +139,7 @@ public class PromotionService(
     
                 if (isGameInOtherPromotion)
                 {
-                    Notify($"O jogo {game.GameId} já está em outra promoção neste período");
+                    Notify($"The game {game.GameId} is already in another promotion in this period");
                     return false;
                 }
                 
@@ -142,15 +173,12 @@ public class PromotionService(
                 return null;
             }
 
-            if (await promotionGameRepository.AnyAsync(
-                    x => x.PromotionId == model.PromotionId && x.GameId == model.GameId && x.PromotionId != id, ct))
+            if (promotionGame.PromotionId != model.PromotionId || promotionGame.GameId != model.GameId)
             {
-                Notify("There is already a promotion with this name in the records");
-                return false;
+                Notify("Promotion or game cannot be changed");
+                return null;
             }
-
-            promotionGame.PromotionId = promotionGame.PromotionId;
-            promotionGame.GameId = promotionGame.GameId;
+            
             promotionGame.DiscountPercentage = model.DiscountPercentage;
 
             promotionGameRepository.Update(promotionGame);
@@ -170,7 +198,7 @@ public class PromotionService(
 
         try
         {
-            var promotionGame = await promotionGameRepository.FirstOrDefaultAsync(x => x.Id == id, true);
+            var promotionGame = await promotionGameRepository.FirstOrDefaultAsync(x => x.Id == id, true, x => x.WalletTransactions);
 
             if (promotionGame == null)
             {
@@ -194,39 +222,7 @@ public class PromotionService(
             throw;
         }
     }
-
-
-    public async Task<bool?> DeleteAsync(Guid id, CancellationToken ct = default)
-    {
-        await using var transaction = await unitOfWork.BeginTransactionAsync(ct);
-
-        try
-        {
-            var promotion = await promotionRepository.GetByIdAsync(id, ct);
-
-            if (promotion == null)
-            {
-                Notify("Promotion not found");
-                return null;
-            }
-
-            if (promotion.GamesOnSale.Count != 0)
-            {
-                Notify("Promotion cannot be deleted");
-                return null;
-            }
-
-            promotionRepository.Delete(promotion);
-
-            return await unitOfWork.CommitAsync(ct);
-        }
-        catch
-        {
-            await unitOfWork.RollbackAsync(ct);
-            throw;
-        }
-    }
-
+    
     public void Dispose()
     {
         GC.SuppressFinalize(this);

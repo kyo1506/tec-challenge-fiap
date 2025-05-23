@@ -5,8 +5,6 @@ namespace TecChallenge.Shared.Models.Dtos.Requests;
 
 public class PromotionGameAddRequest
 {
-    public Guid PromotionId { get; set; }
-    
     [Required]
     public Guid GameId { get; set; }
     

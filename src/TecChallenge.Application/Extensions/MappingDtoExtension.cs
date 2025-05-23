@@ -53,7 +53,7 @@ public static class MappingDtoExtension
         };
     }
 
-    private static PromotionGameResponse MapToDto(this PromotionGame promotionGame)
+    public static PromotionGameResponse MapToDto(this PromotionGame promotionGame)
     {
         return new PromotionGameResponse
         {

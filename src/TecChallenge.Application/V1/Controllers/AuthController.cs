@@ -27,7 +27,7 @@ public class AuthController(
     RoleManager<ApplicationRole> roleManager,
     IOptions<JwtOptions> jwtOptions,
     IOptions<UrlConfiguration> urlConfiguration,
-    IEmailService emailService,
+    IMockEmailService emailService,
     IUserLibraryService userLibraryService)
     : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
 {
@@ -150,7 +150,7 @@ public class AuthController(
             .Replace("[YEAR]", DateTime.UtcNow.Year.ToString());
 
         var resultEmail = await emailService.SendAsync(
-            subject: title ?? string.Empty,
+            subject: title,
             body: template,
             recipient: user.Email,
             env: WebHostEnvironment.EnvironmentName
@@ -158,7 +158,7 @@ public class AuthController(
 
         if (resultEmail) return CustomResponse(successMessage);
 
-        NotifyError(failMessage ?? string.Empty);
+        NotifyError(failMessage);
         return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
     }
 
@@ -217,7 +217,7 @@ public class AuthController(
                 .Replace("[YEAR]", DateTime.UtcNow.Year.ToString());
 
             var resultEmail = await emailService.SendAsync(
-                subject: title ?? string.Empty,
+                subject: title,
                 body: template,
                 recipient: user.Email,
                 env: WebHostEnvironment.EnvironmentName
@@ -286,7 +286,7 @@ public class AuthController(
             .Replace("[YEAR]", DateTime.UtcNow.Year.ToString());
 
         var resultEmail = await emailService.SendAsync(
-            subject: title ?? string.Empty,
+            subject: title,
             body: template,
             recipient: user.Email,
             env: WebHostEnvironment.EnvironmentName
@@ -429,7 +429,7 @@ public class AuthController(
 
                 template = template
                     .Replace("[NOTIFICATION]", notification)
-                    .Replace("[MESSAGE]", message?.Replace("password", password))
+                    .Replace("[MESSAGE]", message.Replace("password", password))
                     .Replace("[YEAR]", DateTime.UtcNow.Year.ToString());
 
                 var resultEmail = await emailService.SendAsync(
@@ -528,7 +528,7 @@ public class AuthController(
 
         if (!validatedToken.IsValid)
         {
-            NotifyError(invalidToken ?? "Invalid token");
+            NotifyError(invalidToken);
             return CustomResponse<LoginResponseDto>(statusCode: HttpStatusCode.BadRequest);
         }
 
@@ -609,7 +609,7 @@ public class AuthController(
 
             template = template
                 .Replace("[NOTIFICATION]", notification)
-                .Replace("[MESSAGE]", message?.Replace("[LINK]", confirmEmailUrl))
+                .Replace("[MESSAGE]", message.Replace("[LINK]", confirmEmailUrl))
                 .Replace("[YEAR]", DateTime.UtcNow.Year.ToString());
 
             var resultEmail = await emailService.SendAsync(
@@ -621,7 +621,7 @@ public class AuthController(
 
             if (resultEmail) return CustomResponse(successMessage);
 
-            NotifyError(failMessage ?? string.Empty);
+            NotifyError(failMessage);
             return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
         }
 

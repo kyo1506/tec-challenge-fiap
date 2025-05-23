@@ -27,13 +27,19 @@ public class TransactionService(
             var library =
                 await libraryRepository.FirstOrDefaultAsync(x => x.UserId == userId, true, includes: x => x.Items);
             var game = await gameRepository.FirstOrDefaultAsync(x => x.Id == gameId, true);
+            
+            DomainException.ThrowIfNull(wallet, "Wallet not found");
+            DomainException.ThrowIfNull(library, "Library not found");
+            DomainException.ThrowIfNull(game, "Game not found");
+
+            if (library.Items.Any(i => i.GameId == gameId)) throw new DomainException("Game already in library");
 
             PromotionGame? promotionGame = null;
 
             if (promotionGameId.HasValue)
             {
                 promotionGame = await promotionRepository
-                    .GetPromotionGameById(promotionGameId.Value, gameId);
+                    .GetPromotionGameById(promotionGameId.Value);
 
                 if (promotionGame == null)
                     throw new PromotionNotApplicableException("Promotion not applicable to this game");

@@ -1,141 +1,176 @@
-# Tech Challenge - Fase 1
+# 🎮 Tech Challenge - Fase 1
 
-Este projeto é a primeira fase da criação da plataforma de venda de jogos digitais e gestão de transações financeiras.
+**Plataforma de Venda de Jogos Digitais e Gestão de servidores para partidas online**
 
-## Visão Geral
+---
 
-A API desenvolvida oferece uma plataforma completa para venda de jogos digitais, incluindo:
+## 📌 Visão Geral
 
-- **Autenticação e Autorização**: Sistema completo de registro, login e gerenciamento de usuários
-- **Gestão de Jogos**: CRUD completo para catálogo de jogos
-- **Sistema de Promoções**: Criação e gerenciamento de promoções com descontos
-- **Transações Financeiras**: Compra, reembolso, depósito e saque
-- **Biblioteca do Usuário**: Gerenciamento da coleção de jogos adquiridos
+A API desenvolvida oferece uma solução completa para comercialização de jogos digitais, com funcionalidades que abrangem:
 
-## Estrutura do Projeto
+- 🔐 **Autenticação e Autorização**: Registro, login, redefinição de senha e confirmação de e-mail  
+- 🕹️ **Gestão de Jogos**: Cadastro completo do catálogo de jogos  
+- 💸 **Promoções**: Criação e gerenciamento de descontos promocionais  
+- 💳 **Transações Financeiras**: Compra, reembolso, depósito e saque de saldo  
+- 📚 **Biblioteca do Usuário**: Armazenamento e gerenciamento dos jogos adquiridos
 
-O projeto segue a abordagem **Domain-Driven Design (DDD)** com **injeção de dependência** para promover modularidade, coesão e fácil manutenção. As principais camadas são:
+---
 
-- **Application** - Responsável pela apresentação e lógicas de aplicação
-- **Data** - Gerencia a persistência e conexão com o banco de dados
-- **Domain** - Contém a lógica de domínio e as entidades
-- **Infrastructure** - Gerencia a conexão e lógica de serviços externos
-- **Shared** - DTOs, classes genéricas e implementação de Requests e Responses
+## 🧱 Estrutura do Projeto
 
-## Endpoints da API
+O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **injeção de dependência** para garantir modularidade, coesão e manutenção facilitada.
 
-### Autenticação (`/api/v1/auth`)
-- **GET** `/` - Listar todos os usuários
-- **GET** `/{id}` - Obter usuário específico e suas permissões
-- **PUT** `/{id}` - Atualizar dados do usuário
-- **DELETE** `/{id}` - Excluir usuário
-- **POST** `/register` - Registrar nova conta
-- **POST** `/login` - Fazer login na aplicação
-- **POST** `/refresh-token` - Renovar token de acesso
-- **POST** `/first-access` - Redefinir senha no primeiro acesso
-- **GET** `/reset-password/{email}` - Enviar link de redefinição de senha
-- **POST** `/reset-password` - Redefinir senha do usuário
-- **GET** `/confirm-email/{email}` - Enviar link de confirmação de email
-- **POST** `/confirm-email` - Confirmar email do usuário
+### 🔧 Camadas
 
-### Jogos (`/api/v1/games`)
-- **GET** `/` - Listar todos os jogos disponíveis
-- **POST** `/` - Criar novo jogo
-- **GET** `/{id}` - Obter jogo específico
-- **PUT** `/{id}` - Atualizar jogo existente
-- **DELETE** `/{id}` - Excluir jogo
+- **Application** – Camada de orquestração da lógica de aplicação  
+- **Domain** – Regras de negócio e entidades do domínio  
+- **Data** – Implementações de repositórios e acesso a dados  
+- **Infrastructure** – Integrações externas (como serviços de e-mail)  
+- **Shared** – DTOs, modelos base, Requests/Responses e validações
 
-### Promoções (`/api/v1/promotions`)
-- **GET** `/` - Listar todas as promoções ativas
-- **POST** `/` - Criar nova promoção
-- **GET** `/{id}` - Obter promoção específica
-- **PUT** `/{id}` - Atualizar promoção existente
-- **DELETE** `/{id}` - Excluir promoção
-- **POST** `/{promotionId}/promotion-games` - Adicionar jogos à promoção
-- **PUT** `/promotion-games/{promotionGameId}` - Atualizar item da promoção
-- **DELETE** `/promotion-games/{promotionGameId}` - Remover jogo da promoção
+---
 
-### Transações (`/api/v1/transactions`)
-- **POST** `/purchase` - Processar compra de jogo
-- **PUT** `/refund-purchase` - Processar reembolso de compra
-- **POST** `/deposit` - Depositar fundos na conta do usuário
-- **PUT** `/withdraw` - Sacar fundos da conta do usuário
+## 🔗 Endpoints da API
 
-### Biblioteca do Usuário (`/api/v1/user-libraries`)
-- **GET** `/{userId}` - Obter biblioteca de jogos do usuário
+### 🛡️ Autenticação (`/api/v1/auth`)
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/` | Listar todos os usuários |
+| GET    | `/{id}` | Obter usuário específico com permissões |
+| PUT    | `/{id}` | Atualizar usuário |
+| DELETE | `/{id}` | Excluir usuário |
+| POST   | `/register` | Registrar nova conta |
+| POST   | `/login` | Login do usuário |
+| POST   | `/refresh-token` | Renovar token JWT |
+| POST   | `/first-access` | Redefinir senha no primeiro acesso |
+| GET    | `/reset-password/{email}` | Enviar link de redefinição de senha |
+| POST   | `/reset-password` | Redefinir senha |
+| GET    | `/confirm-email/{email}` | Enviar link de confirmação de e-mail |
+| POST   | `/confirm-email` | Confirmar e-mail |
 
-## Modelos de Dados Principais
+### 🎮 Jogos (`/api/v1/games`)
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/` | Listar todos os jogos |
+| POST   | `/` | Criar novo jogo |
+| GET    | `/{id}` | Obter jogo por ID |
+| PUT    | `/{id}` | Atualizar jogo |
+| DELETE | `/{id}` | Excluir jogo |
 
-### Autenticação
-- **LoginDto**: Email e senha para login
-- **CreateUserDto**: Dados para criação de usuário (email, role, claims)
-- **UserDto**: Informações completas do usuário
-- **ChangePasswordDto**: Dados para redefinição de senha
+### 🏷️ Promoções (`/api/v1/promotions`)
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/` | Listar promoções ativas |
+| POST   | `/` | Criar nova promoção |
+| GET    | `/{id}` | Obter promoção por ID |
+| PUT    | `/{id}` | Atualizar promoção |
+| DELETE | `/{id}` | Excluir promoção |
+| POST   | `/{promotionId}/promotion-games` | Adicionar jogos à promoção |
+| PUT    | `/promotion-games/{promotionGameId}` | Atualizar item da promoção |
+| DELETE | `/promotion-games/{promotionGameId}` | Remover jogo da promoção |
 
-### Jogos
-- **GameAddRequest**: Nome e preço para criação
-- **GameUpdateRequest**: Dados completos para atualização
-- **GameResponse**: Informações do jogo (id, nome, preço, status, datas)
+### 💰 Transações (`/api/v1/transactions`)
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST   | `/purchase` | Comprar jogo |
+| PUT    | `/refund-purchase` | Solicitar reembolso |
+| POST   | `/deposit` | Depositar saldo |
+| PUT    | `/withdraw` | Sacar saldo |
 
-### Promoções
-- **PromotionAddRequest**: Nome, datas e jogos em promoção
-- **PromotionGameAddRequest**: ID do jogo e percentual de desconto
-- **PromotionResponse**: Dados completos da promoção
+### 📚 Biblioteca (`/api/v1/user-libraries`)
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/{userId}` | Consultar jogos adquiridos |
 
-### Transações
-- **PurchaseGameRequest**: IDs do usuário, jogo e promoção (opcional)
-- **BalanceRequest**: ID do usuário e valor para depósito/saque
-- **RefundPurchaseRequest**: IDs do usuário e jogo para reembolso
+---
 
-## Recursos Técnicos
+## 📦 Modelos de Dados
 
-- **Linguagem**: C#
-- **Framework**: ASP.NET Core
-- **Arquitetura**: Domain-Driven Design (DDD) com injeção de dependência
-- **Autenticação**: JWT (JSON Web Tokens) com Refresh Token
-- **Documentação**: OpenAPI/Swagger 3.0.4
-- **Validação**: Data Annotations e validações de negócio
+### 🔐 Autenticação
+- `LoginDto`: E-mail e senha  
+- `CreateUserDto`: Cadastro de usuário com e-mail, permissões e role  
+- `UserDto`: Dados completos do usuário  
+- `ChangePasswordDto`: Redefinição de senha  
 
-## Regras de Negócio
+### 🎮 Jogos
+- `GameAddRequest`: Nome e preço do jogo  
+- `GameUpdateRequest`: Dados completos do jogo  
+- `GameResponse`: ID, nome, status, preço e datas  
 
-### Autenticação
-- Senhas devem conter pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial
-- Sistema de confirmação de email obrigatório
-- Controle de acesso baseado em roles e claims
+### 🏷️ Promoções
+- `PromotionAddRequest`: Nome, datas e jogos da promoção  
+- `PromotionGameAddRequest`: ID do jogo e percentual de desconto  
+- `PromotionResponse`: Dados da promoção  
 
-### Transações
-- Verificação de saldo suficiente para compras e saques
-- Prevenção de compra duplicada do mesmo jogo
-- Sistema de reembolso com validações de elegibilidade
-- Aplicação automática de descontos quando há promoção ativa
+### 💳 Transações
+- `PurchaseGameRequest`: ID do usuário, jogo e promoção (opcional)  
+- `BalanceRequest`: ID do usuário e valor  
+- `RefundPurchaseRequest`: ID do usuário e jogo  
 
-### Promoções
-- Validação de datas (início deve ser anterior ao fim)
-- Percentual de desconto entre 1% e 100%
-- Controle de conflitos ao remover jogos com transações existentes
+---
 
-## Executando o Projeto
+## ⚙️ Recursos Técnicos
 
-1. Clone este repositório
-2. Configure a string de conexão no arquivo `appsettings.json`
-3. Execute as migrações do banco de dados
-4. Compile e execute o projeto
-5. Acesse a documentação Swagger em `/swagger`
+- **Linguagem**: C#  
+- **Framework**: ASP.NET Core (.NET 9)  
+- **Arquitetura**: MVC + DDD  
+- **Testes**: TDD  
+- **Autenticação**: JWT com refresh token  
+- **Validação**: Data Annotations, FluentValidation, EF Mapping  
+- **Documentação**: OpenAPI / Swagger 3.0.4  
+- **Serviços**: Serviço de e-mail mockado (por segurança)  
 
-## Autenticação da API
+---
 
-A API utiliza autenticação Bearer Token. Para acessar endpoints protegidos:
+## 🧠 Regras de Negócio
 
-1. Faça login através do endpoint `/api/v1/auth/login`
-2. Use o `accessToken` retornado no header Authorization: `Bearer {seu_token}`
-3. Renove o token quando necessário usando o `refreshToken`
+### 🔐 Autenticação
+- Senha segura (mín. 8 caracteres, maiúscula, minúscula, número e caractere especial)  
+- Confirmação de e-mail obrigatória  
+- Controle de acesso por roles e claims  
 
-## Contato
+### 💳 Transações
+- Validação de saldo  
+- Prevenção de compras duplicadas  
+- Reembolso com regras de elegibilidade  
+- Aplicação automática de promoções válidas  
 
-**Desenvolvedor**: Vinicius Freire
+### 🏷️ Promoções
+- Datas válidas (início < fim)  
+- Descontos entre 1% e 100%  
+- Proibição de remover jogos com compras vinculadas  
 
-**Desenvolvedor**: Willian Costa
+### 🎮 Jogos
+- Nome único por jogo  
 
-**Licença**: MIT
+### 📚 Biblioteca
+- Sem duplicação de jogos para o mesmo usuário  
 
-Este projeto foi desenvolvido com foco em escalabilidade, segurança e facilidade de manutenção, seguindo as melhores práticas de desenvolvimento de APIs REST.
+---
+
+## 🚀 Como Executar
+
+1. Clone o repositório  
+2. Configure a string de conexão em `appsettings.json`  
+3. Execute as migrações do banco de dados  
+4. Compile e execute o projeto  
+5. Acesse a documentação Swagger: `/swagger`
+
+---
+
+## 🔐 Autenticação da API
+
+1. Acesse `/api/v1/auth/login` e faça login  
+2. Copie o `accessToken` retornado  
+3. Utilize no header `Authorization: Bearer {seu_token}`  
+4. Quando necessário, renove com `/refresh-token`
+
+---
+
+## 👥 Contato
+
+- **Vinicius Freire**  
+- **Willian Costa**
+
+📄 Licença: MIT  
+🧪 Desenvolvido com foco em escalabilidade, segurança e boas práticas RESTful.

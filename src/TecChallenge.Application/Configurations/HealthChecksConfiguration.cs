@@ -22,12 +22,13 @@ public static class HealthChecksConfig
                 name: "Database",
                 failureStatus: HealthStatus.Degraded,
                 tags: SqlTags
-            )
-            .AddCheck<MailHealthCheck>(
-                "Mail Server",
-                HealthStatus.Unhealthy,
-                MailTags
             );
+        
+            // .AddCheck<MailHealthCheck>(
+            //     "Mail Server",
+            //     HealthStatus.Unhealthy,
+            //     MailTags
+            // );
 
         services
             .AddHealthChecksUI(options =>

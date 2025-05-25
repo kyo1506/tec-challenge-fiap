@@ -43,7 +43,7 @@ public static class ApiConfiguration
         {
             options.UrlPortal =
                 configuration.GetValue<string>("UrlPortal")
-                ?? "https://maestroportal-dev.atento.com";
+                ?? "https://localhost:5000";
         });
 
         services.AddCors(options =>

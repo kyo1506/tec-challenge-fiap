@@ -1,6 +1,6 @@
 # 🎮 Tech Challenge - Fase 1
 
-**Plataforma de Venda de Jogos Digitais e Gestão de servidores para partidas online**
+**Plataforma de Venda de Jogos Digitais e Gestão de Transações Financeiras**
 
 ---
 

@@ -103,9 +103,9 @@ public abstract class MainController : ControllerBase
     {
         _notifier.Handle(new Notification(message));
     }
-    
 
-    protected async Task<string> GetTemplateFile()
+
+    protected virtual async Task<string> GetTemplateFile()
     {
         var filePath = Path.Combine(
             WebHostEnvironment.WebRootPath,

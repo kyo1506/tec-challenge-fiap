@@ -53,6 +53,7 @@ public class GameServiceTest
             .ReturnsAsync(true);
 
         var result = await _gameService.AddAsync(game);
+        
         result.Should().BeTrue();
 
         _gameRepositoryMock.Verify(r => r.AddAsync(game, It.IsAny<CancellationToken>()), Times.Once);

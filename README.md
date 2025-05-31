@@ -119,7 +119,8 @@ O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **inj
 - **Autenticação**: JWT com refresh token 
 - **Validação**: Data Annotations, FluentValidation, EF Mapping 
 - **Documentação**: OpenAPI / Swagger 3.0.4 
-- **Serviços**: Serviço de e-mail mockado (por segurança) 
+- **Serviços**: Serviço de e-mail mockado (por segurança)
+- **Banco de dados**: SQL Server
 
 ---
 
@@ -188,6 +189,26 @@ Utilizamos as seguintes ferramentas para monitoramento:
 3. Execute as migrações do banco de dados 
 4. Compile e execute o projeto 
 5. Acesse a documentação Swagger: `/swagger`
+
+**Após a execução das migrações, por fim, ao executar o projeto Application pela primeira vez, o serviço de Seed gerará os usuários abaixo:**
+
+ADMIN
+```json
+{
+  "email": "vinicius_pinheiro05@hotmail.com",
+  "password": "Default@123"
+}
+```
+
+USER
+```json
+{
+  "email": "vinicius_pinheiro02@hotmail.com",
+  "password": "Default@123"
+}
+```
+
+Utilize-os para fazer login e testar as funcionalidades da aplicação.
 
 ---
 

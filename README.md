@@ -190,6 +190,26 @@ Utilizamos as seguintes ferramentas para monitoramento:
 4. Compile e execute o projeto 
 5. Acesse a documentação Swagger: `/swagger`
 
+**Após a execução das migrações, por fim, ao executar o projeto Application pela primeira vez, o serviço de Seed gerará os usuários abaixo:**
+
+ADMIN
+```json
+{
+  "email": "vinicius_pinheiro05@hotmail.com",
+  "password": "Default@123"
+}
+```
+
+USER
+```json
+{
+  "email": "vinicius_pinheiro02@hotmail.com",
+  "password": "Default@123"
+}
+```
+
+Utilize-os para fazer login e testar as funcionalidades da aplicação.
+
 ---
 
 ## 🔐 Autenticação da API

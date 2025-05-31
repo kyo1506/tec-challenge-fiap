@@ -35,32 +35,53 @@ public sealed class AppDbContext : DbContext
     {
         var now = DateTime.UtcNow;
 
-        foreach (var entry in ChangeTracker.Entries().Where(e =>
-                     e.State is EntityState.Added or EntityState.Modified))
+        foreach (var entry in ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified))
         {
-            var entity = entry.Entity;
-
-            // CreatedAt
-            if (entry.State == EntityState.Added && entry.Properties.Any(p => p.Metadata.Name == "CreatedAt"))
+            switch (entry.State)
             {
-                entry.Property("CreatedAt").CurrentValue = now;
-
-                if (entry.Properties.Any(p => p.Metadata.Name == "IsActive"))
+                case EntityState.Added:
                 {
-                    entry.Property("IsActive").CurrentValue = true;
+                    // Seta CreatedAt se existir
+                    if (entry.Properties.Any(p => p.Metadata.Name == "CreatedAt"))
+                    {
+                        entry.Property("CreatedAt").CurrentValue = now;
+                    }
+
+                    // Seta IsActive como true se existir
+                    if (entry.Properties.Any(p => p.Metadata.Name == "IsActive"))
+                    {
+                        entry.Property("IsActive").CurrentValue = true;
+                    }
+
+                    break;
                 }
-            }
+                case EntityState.Modified:
+                {
+                    if (entry.Properties.Any(p => p.Metadata.Name == "CreatedAt"))
+                    {
+                        entry.Property("CreatedAt").IsModified = false;
+                    }
+                
+                    if (entry.Properties.Any(p => p.Metadata.Name == "UpdatedAt"))
+                    {
+                        if (entry.Properties.Any(p => p.IsModified && p.Metadata.Name != "UpdatedAt"))
+                        {
+                            entry.Property("UpdatedAt").CurrentValue = now;
+                        }
+                        else
+                        {
+                            entry.Property("UpdatedAt").IsModified = false;
+                        }
+                    }
 
-            // Impede alteração do CreatedAt
-            if (entry.State == EntityState.Modified && entry.Properties.Any(p => p.Metadata.Name == "CreatedAt"))
-            {
-                entry.Property("CreatedAt").IsModified = false;
-            }
-
-            // UpdatedAt
-            if (entry.Properties.Any(p => p.Metadata.Name == "UpdatedAt"))
-            {
-                entry.Property("UpdatedAt").CurrentValue = now;
+                    break;
+                }
+                case EntityState.Detached:
+                case EntityState.Unchanged:
+                case EntityState.Deleted:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 

@@ -72,7 +72,7 @@ namespace TecChallenge.Tests
             );
         }
 
-        #region AddUser Tests - Improved
+        #region AddUser Tests
 
         [Fact]
         public async Task AddUser_WithValidModel_ShouldCreateUserAndSendWelcomeEmail()
@@ -278,7 +278,7 @@ namespace TecChallenge.Tests
 
         #endregion
 
-        #region FirstAccess Tests - Improved
+        #region FirstAccess Tests
 
         [Fact]
         public async Task FirstAccess_WithValidModel_ShouldResetPasswordAndSendConfirmationEmail()
@@ -351,7 +351,7 @@ namespace TecChallenge.Tests
 
         #endregion
 
-        #region UpdateUser Tests - Improved
+        #region UpdateUser Tests
 
         [Fact]
         public async Task UpdateUser_WithRoleChange_ShouldUpdateRoleCorrectly()
@@ -485,7 +485,7 @@ namespace TecChallenge.Tests
 
         #endregion
 
-        #region Login Tests - Enhanced
+        #region Login Tests
 
         [Fact]
         public async Task Login_WithValidCredentials_ShouldReturnLoginResponse()

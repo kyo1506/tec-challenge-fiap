@@ -18,7 +18,7 @@ public static class IdentityConfig
         services
             .AddDbContext<AuthDbContext>(options =>
                 options
-                    .UseSqlServer(
+                    .UseNpgsql(
                         configuration.GetConnectionString("DefaultConnection"),
                         o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
                     )

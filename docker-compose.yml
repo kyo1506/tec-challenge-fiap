@@ -1,0 +1,26 @@
+services:
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: tech_challenger
+    environment:
+      POSTGRES_USER: sa 
+      POSTGRES_PASSWORD: 1q2w3e4r@#$
+      POSTGRES_DB: TechChallenge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    
+  api_tech_challenger: 
+    container_name: api_dotnet_tech_challenger
+    build: .
+    environment:
+        ASPNETCORE_ENVIRONMENT: Production 
+        DOTNET_RUNNING_IN_CONTAINER: true
+    ports:
+      - "5000:8080"
+    restart: on-failure
+
+volumes:
+  postgres_data:

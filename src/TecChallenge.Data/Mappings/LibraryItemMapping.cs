@@ -14,7 +14,7 @@ public class LibraryItemMapping : IEntityTypeConfiguration<LibraryItem>
 
         builder.Property(p => p.GameId).IsRequired();
 
-        builder.Property(p => p.PurchasedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+        builder.Property(p => p.PurchasedAt).IsRequired().HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
 
         builder.Property(p => p.PurchasePrice).IsRequired().HasColumnType("decimal(18,2)")
             .HasPrecision(18, 2);

@@ -1,8 +1,9 @@
-using System.Data;
+using NpgsqlTypes;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
-using Serilog.Sinks.MSSqlServer;
+using Serilog.Sinks.PostgreSQL;
+using System.Data;
 
 namespace TecChallenge.Application.Configurations;
 
@@ -13,29 +14,16 @@ public static class LoggingConfiguration
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        var sinkOptions = new MSSqlServerSinkOptions { TableName = "Log" };
-
-        var columnOptions = new ColumnOptions
+        var columnWriters = new Dictionary<string, ColumnWriterBase>
         {
-            Id =
-            {
-                DataType = SqlDbType.BigInt
-            },
-            TimeStamp =
-            {
-                DataType = SqlDbType.DateTime2
-            }
+            { "Message", new RenderedMessageColumnWriter(NpgsqlDbType.Text) },
+            { "MessageTemplate", new MessageTemplateColumnWriter(NpgsqlDbType.Text) },
+            { "Level", new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
+            { "TimeStamp", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
+            { "Exception", new ExceptionColumnWriter(NpgsqlDbType.Text) },
+            { "Properties", new PropertiesColumnWriter(NpgsqlDbType.Jsonb) },
+            { "ApplicationName", new SinglePropertyColumnWriter("ApplicationName", PropertyWriteMethod.Raw) }
         };
-        columnOptions.Store.Remove(StandardColumn.Properties);
-        columnOptions.AdditionalColumns =
-        [
-            new SqlColumn
-            {
-                ColumnName = "ApplicationName",
-                DataType = SqlDbType.NVarChar,
-                DataLength = 255
-            }
-        ];
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
@@ -56,10 +44,12 @@ public static class LoggingConfiguration
                 retainedFileCountLimit: 7,
                 formatter: new JsonFormatter()
             )
-            .WriteTo.MSSqlServer(
-                connectionString,
-                sinkOptions,
-                columnOptions: columnOptions
+            .WriteTo.PostgreSQL(
+                connectionString: connectionString,
+                tableName: "Log",
+                columnOptions: columnWriters,
+                needAutoCreateTable: true,
+                respectCase: true
             )
             .Filter.ByExcluding(logEvent => logEvent.RenderMessage().Contains("HTTP"))
             .CreateLogger();

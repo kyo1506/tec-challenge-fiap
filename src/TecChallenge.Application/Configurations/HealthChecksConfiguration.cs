@@ -16,7 +16,7 @@ public static class HealthChecksConfig
 
         services
             .AddHealthChecks()
-            .AddSqlServer(
+            .AddNpgSql(
                 connectionString ?? throw new InvalidDataException(),
                 "SELECT 1",
                 name: "Database",

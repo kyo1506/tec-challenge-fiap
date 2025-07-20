@@ -12,15 +12,14 @@ using TecChallenge.Application.Data;
 namespace TecChallenge.Application.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20250715234914_MigracaoInicial")]
-    partial class MigracaoInicial
+    [Migration("20250720221134_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("dbo")
                 .HasAnnotation("ProductVersion", "9.0.5")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
@@ -50,7 +49,7 @@ namespace TecChallenge.Application.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RoleClaim", "dbo");
+                    b.ToTable("RoleClaim", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -74,7 +73,7 @@ namespace TecChallenge.Application.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserClaim", "dbo");
+                    b.ToTable("UserClaim", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -97,7 +96,7 @@ namespace TecChallenge.Application.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserLogin", "dbo");
+                    b.ToTable("UserLogin", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
@@ -112,7 +111,7 @@ namespace TecChallenge.Application.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRole", "dbo");
+                    b.ToTable("UserRole", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -133,7 +132,7 @@ namespace TecChallenge.Application.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("UserToken", "dbo");
+                    b.ToTable("UserToken", (string)null);
                 });
 
             modelBuilder.Entity("TecChallenge.Application.Extensions.ApplicationRole", b =>
@@ -166,7 +165,7 @@ namespace TecChallenge.Application.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("Role", "dbo");
+                    b.ToTable("Role", (string)null);
                 });
 
             modelBuilder.Entity("TecChallenge.Application.Extensions.ApplicationUser", b =>
@@ -237,7 +236,7 @@ namespace TecChallenge.Application.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("User", "dbo");
+                    b.ToTable("User", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

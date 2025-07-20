@@ -25,8 +25,6 @@ public sealed class AuthDbContext : IdentityDbContext<ApplicationUser, Applicati
 
         base.OnModelCreating(builder);
 
-        builder.HasDefaultSchema("dbo");
-
         builder.Entity<ApplicationRole>(entity => { entity.ToTable("Role"); });
 
         builder.Entity<ApplicationUser>(entity => { entity.ToTable("User"); });

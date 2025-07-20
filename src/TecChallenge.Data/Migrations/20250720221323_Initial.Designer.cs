@@ -12,8 +12,8 @@ using TecChallenge.Data.Contexts;
 namespace TecChallenge.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250715234805_MigracaoInicial")]
-    partial class MigracaoInicial
+    [Migration("20250720221323_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

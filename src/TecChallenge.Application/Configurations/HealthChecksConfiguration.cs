@@ -30,33 +30,6 @@ public static class HealthChecksConfig
             //     MailTags
             // );
 
-        services
-            .AddHealthChecksUI(options =>
-            {
-                options.UseApiEndpointHttpMessageHandler(sp =>
-                {
-                    return new HttpClientHandler
-                    {
-                        ClientCertificateOptions = ClientCertificateOption.Manual,
-                        ServerCertificateCustomValidationCallback = (
-                            httpRequestMessage,
-                            cert,
-                            cetChain,
-                            policyErrors
-                        ) => policyErrors == SslPolicyErrors.None
-                    };
-                });
-
-                options.SetEvaluationTimeInSeconds(60);
-                options.MaximumHistoryEntriesPerEndpoint(60);
-                options.SetApiMaxActiveRequests(1);
-                options.AddHealthCheckEndpoint(
-                    "Tech Challenge Api",
-                    configuration.GetValue<string>("UrlHealthCheck")
-                    ?? throw new InvalidDataException()
-                );
-                options.DisableDatabaseMigrations();
-            })
-            .AddInMemoryStorage();
+       
     }
 }

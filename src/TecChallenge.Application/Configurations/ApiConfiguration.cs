@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using Asp.Versioning;
-using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -90,17 +89,6 @@ public static class ApiConfiguration
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
-
-            endpoints.MapHealthChecks(
-                "/api/health",
-                new HealthCheckOptions
-                {
-                    Predicate = _ => true,
-                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-                }
-            );
-
-            endpoints.MapHealthChecksUI(setup => { setup.UIPath = "/api/monitor"; });
         });
     }
 }

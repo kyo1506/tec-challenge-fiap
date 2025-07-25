@@ -12,8 +12,10 @@ namespace TecChallenge.Application.Configurations;
 
 public static class IdentityConfig
 {
-    public static void AddIdentityConfiguration(this IServiceCollection services,
-        IConfiguration configuration)
+    public static void AddIdentityConfiguration(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         services
             .AddDbContext<AuthDbContext>(options =>
@@ -45,7 +47,7 @@ public static class IdentityConfig
         var securityKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(
                 configuration.GetValue<string>("ApplicationKey")
-                ?? throw new InvalidOperationException()
+                    ?? throw new InvalidOperationException()
             )
         );
 
@@ -86,23 +88,23 @@ public static class IdentityConfig
                     ValidAudience = jwtAppSettingOptions[nameof(JwtOptions.Audience)],
                     ValidateLifetime = true,
                     RequireExpirationTime = true,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
                 };
             });
     }
-    
+
     public static async Task InitializeIdentityDatabase(this IApplicationBuilder app)
     {
         using var scope = app.ApplicationServices.CreateScope();
         var services = scope.ServiceProvider;
-        
+
         try
         {
             var appDbContext = services.GetRequiredService<AppDbContext>();
             var authDbContext = services.GetRequiredService<AuthDbContext>();
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
-            
+
             await DbInitializer.Initialize(appDbContext, authDbContext, userManager, roleManager);
         }
         catch (Exception ex)

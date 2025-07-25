@@ -1,8 +1,6 @@
-using System.Globalization;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using TecChallenge.Domain.Entities;
 using TecChallenge.Domain.Notifications;
 using IUser = TecChallenge.Domain.Interfaces.IUser;
 

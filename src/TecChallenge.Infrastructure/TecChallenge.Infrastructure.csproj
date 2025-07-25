@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -7,12 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MailKit" Version="4.12.1" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.5" />
+        <PackageReference Include="MailKit" Version="4.13.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.7" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\TecChallenge.Domain\TecChallenge.Domain.csproj"/>
+        <ProjectReference Include="..\TecChallenge.Domain\TecChallenge.Domain.csproj" />
     </ItemGroup>
 
 </Project>

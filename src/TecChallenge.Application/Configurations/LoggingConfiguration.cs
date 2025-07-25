@@ -3,14 +3,15 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 using Serilog.Sinks.PostgreSQL;
-using System.Data;
 
 namespace TecChallenge.Application.Configurations;
 
 public static class LoggingConfiguration
 {
-    public static void AddLoggingConfiguration(this IServiceCollection services,
-        IConfiguration configuration)
+    public static void AddLoggingConfiguration(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
@@ -22,7 +23,10 @@ public static class LoggingConfiguration
             { "TimeStamp", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
             { "Exception", new ExceptionColumnWriter(NpgsqlDbType.Text) },
             { "Properties", new PropertiesColumnWriter(NpgsqlDbType.Jsonb) },
-            { "ApplicationName", new SinglePropertyColumnWriter("ApplicationName", PropertyWriteMethod.Raw) }
+            {
+                "ApplicationName",
+                new SinglePropertyColumnWriter("ApplicationName", PropertyWriteMethod.Raw)
+            },
         };
 
         Log.Logger = new LoggerConfiguration()
@@ -48,7 +52,9 @@ public static class LoggingConfiguration
                 connectionString: connectionString,
                 tableName: "Log",
                 columnOptions: columnWriters,
-                needAutoCreateTable: true,
+                // --- CORRECTED LINE ---
+                // Let Entity Framework Migrations handle table creation.
+                needAutoCreateTable: false,
                 respectCase: true
             )
             .Filter.ByExcluding(logEvent => logEvent.RenderMessage().Contains("HTTP"))

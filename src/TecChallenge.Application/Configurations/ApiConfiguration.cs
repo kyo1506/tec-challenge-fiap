@@ -1,5 +1,5 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
-using Asp.Versioning;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -10,17 +10,19 @@ namespace TecChallenge.Application.Configurations;
 
 public static class ApiConfiguration
 {
-    public static void AddApiConfiguration(this IServiceCollection services, IConfiguration configuration)
+    public static void AddApiConfiguration(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         services
             .AddControllers()
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler
-                    .IgnoreCycles;
-                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition
-                    .WhenWritingNull;
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.DefaultIgnoreCondition =
+                    JsonIgnoreCondition.WhenWritingNull;
             });
 
         services
@@ -36,13 +38,15 @@ public static class ApiConfiguration
                 options.SubstituteApiVersionInUrl = true;
             });
 
-        services.Configure<ApiBehaviorOptions>(options => { options.SuppressModelStateInvalidFilter = true; });
+        services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.SuppressModelStateInvalidFilter = true;
+        });
 
         services.Configure<UrlConfiguration>(options =>
         {
             options.UrlPortal =
-                configuration.GetValue<string>("UrlPortal")
-                ?? "https://localhost:5000";
+                configuration.GetValue<string>("UrlPortal") ?? "https://localhost:5000";
         });
 
         services.AddCors(options =>
@@ -54,8 +58,7 @@ public static class ApiConfiguration
         });
     }
 
-    public static void UseApiConfig(this IApplicationBuilder app,
-        IWebHostEnvironment env)
+    public static void UseApiConfig(this IApplicationBuilder app, IWebHostEnvironment env)
     {
         if (env.IsDevelopment())
         {
@@ -89,6 +92,36 @@ public static class ApiConfiguration
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
+
+            endpoints.MapHealthChecks(
+                "/api/health",
+                new HealthCheckOptions
+                {
+                    ResponseWriter = async (context, report) =>
+                    {
+                        context.Response.ContentType = "application/json";
+                        var options = new JsonSerializerOptions { WriteIndented = true };
+
+                        var response = new
+                        {
+                            Status = report.Status.ToString(),
+                            TotalDuration = report.TotalDuration.TotalMilliseconds,
+                            Checks = report.Entries.Select(entry => new
+                            {
+                                Name = entry.Key,
+                                Status = entry.Value.Status.ToString(),
+                                entry.Value.Description,
+                                Duration = entry.Value.Duration.TotalMilliseconds,
+                                entry.Value.Data,
+                            }),
+                        };
+
+                        await context.Response.WriteAsync(
+                            JsonSerializer.Serialize(response, options)
+                        );
+                    },
+                }
+            );
         });
     }
 }

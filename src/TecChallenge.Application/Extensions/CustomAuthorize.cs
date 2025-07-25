@@ -6,16 +6,10 @@ namespace TecChallenge.Application.Extensions;
 
 public abstract class CustomAuthorization
 {
-    public static bool ValidateUserClaims(
-        HttpContext context,
-        string claimName,
-        string claimValue
-    )
+    public static bool ValidateUserClaims(HttpContext context, string claimName, string claimValue)
     {
         return context.User.Identity.IsAuthenticated
-               && context.User.Claims.Any(c =>
-                   c.Type == claimName && c.Value.Contains(claimValue)
-               );
+            && context.User.Claims.Any(c => c.Type == claimName && c.Value.Contains(claimValue));
     }
 }
 
@@ -38,13 +32,7 @@ public class RequiredClaimFilter(Claim claim) : IAuthorizationFilter
             return;
         }
 
-        if (
-            !CustomAuthorization.ValidateUserClaims(
-                context.HttpContext,
-                claim.Type,
-                claim.Value
-            )
-        )
+        if (!CustomAuthorization.ValidateUserClaims(context.HttpContext, claim.Type, claim.Value))
             context.Result = new StatusCodeResult(403);
     }
 }

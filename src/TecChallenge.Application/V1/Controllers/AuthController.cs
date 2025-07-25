@@ -28,8 +28,8 @@ public class AuthController(
     IOptions<JwtOptions> jwtOptions,
     IOptions<UrlConfiguration> urlConfiguration,
     IMockEmailService emailService,
-    IUserLibraryService userLibraryService)
-    : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
+    IUserLibraryService userLibraryService
+) : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
     private readonly UrlConfiguration _urlConfiguration = urlConfiguration.Value;
@@ -55,7 +55,7 @@ public class AuthController(
                 Email = user.Email,
                 Role = await GetRoleNameAsync(user),
                 IsDeleted = user.IsDeleted,
-                FirstAccess = user.FirstAccess
+                FirstAccess = user.FirstAccess,
             })
             .ToEnumerable();
 
@@ -86,8 +86,10 @@ public class AuthController(
         }
 
         var userClaims = (await userManager.GetClaimsAsync(user)).Select(claim => new ClaimDto
-            { Type = claim.Type, Value = claim.Value }
-        );
+        {
+            Type = claim.Type,
+            Value = claim.Value,
+        });
 
         var model = new UserDto
         {
@@ -97,7 +99,7 @@ public class AuthController(
             Role = await GetRoleNameAsync(user),
             IsDeleted = user.IsDeleted,
             FirstAccess = user.FirstAccess,
-            UserClaims = userClaims
+            UserClaims = userClaims,
         };
 
         return CustomResponse(model);
@@ -126,9 +128,7 @@ public class AuthController(
             return CustomResponse<string>(statusCode: HttpStatusCode.NotFound);
         }
 
-        var token = HttpUtility.UrlEncode(
-            await userManager.GeneratePasswordResetTokenAsync(user)
-        );
+        var token = HttpUtility.UrlEncode(await userManager.GeneratePasswordResetTokenAsync(user));
 
         var passwordResetUrl =
             $"{_urlConfiguration.UrlPortal}/auth/reset-password/validate?email="
@@ -139,7 +139,8 @@ public class AuthController(
         var template = await GetTemplateFile();
 
         const string notification = "Password Reset Request";
-        const string message = $"Please reset your password by clicking here: <a href='[LINK]'>Reset Password</a>";
+        const string message =
+            $"Please reset your password by clicking here: <a href='[LINK]'>Reset Password</a>";
         const string title = "Password Reset Instructions";
         const string successMessage = "Password reset link has been sent to your email.";
         const string failMessage = "Failed to send password reset email.";
@@ -156,7 +157,8 @@ public class AuthController(
             env: WebHostEnvironment.EnvironmentName
         );
 
-        if (resultEmail) return CustomResponse(successMessage);
+        if (resultEmail)
+            return CustomResponse(successMessage);
 
         NotifyError(failMessage);
         return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
@@ -190,7 +192,8 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Root<string>>> ResetPassword(ChangePasswordDto model)
     {
-        if (!ModelState.IsValid) return CustomModelStateResponse<string>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<string>(ModelState);
 
         var user = await FindUserByEmailAsync(model.Email);
 
@@ -223,7 +226,8 @@ public class AuthController(
                 env: WebHostEnvironment.EnvironmentName
             );
 
-            if (resultEmail) return CustomResponse(message);
+            if (resultEmail)
+                return CustomResponse(message);
 
             NotifyError(failMessage);
             return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
@@ -275,7 +279,8 @@ public class AuthController(
         var template = await GetTemplateFile();
 
         const string notification = "Email Confirmation Request";
-        const string message = $"Please confirm your email by clicking here: <a href='[LINK]'>Confirm Email</a>";
+        const string message =
+            $"Please confirm your email by clicking here: <a href='[LINK]'>Confirm Email</a>";
         const string title = "Email Confirmation Instructions";
         const string successMessage = "Confirmation link has been sent to your email.";
         const string failMessage = "Failed to send confirmation email.";
@@ -292,7 +297,8 @@ public class AuthController(
             env: WebHostEnvironment.EnvironmentName
         );
 
-        if (resultEmail) return CustomResponse(successMessage);
+        if (resultEmail)
+            return CustomResponse(successMessage);
 
         NotifyError(failMessage);
         return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
@@ -351,7 +357,8 @@ public class AuthController(
                 env: WebHostEnvironment.EnvironmentName
             );
 
-            if (resultEmail) return CustomResponse(successMessage);
+            if (resultEmail)
+                return CustomResponse(successMessage);
 
             NotifyError(failMessage);
             return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
@@ -391,14 +398,15 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Root<string>>> AddUser(CreateUserDto model)
     {
-        if (!ModelState.IsValid) return CustomModelStateResponse<string>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<string>(ModelState);
 
         var user = new ApplicationUser
         {
             UserName = model.Email,
             Email = model.Email,
             IsDeleted = false,
-            FirstAccess = true
+            FirstAccess = true,
         };
 
         var password = GenerateRandomPassword();
@@ -439,7 +447,8 @@ public class AuthController(
                     env: WebHostEnvironment.EnvironmentName
                 );
 
-                if (resultEmail) return CustomResponse(successMessage);
+                if (resultEmail)
+                    return CustomResponse(successMessage);
 
                 NotifyError(failMessage);
                 return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
@@ -466,7 +475,8 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Root<LoginResponseDto>>> Login(LoginDto model)
     {
-        if (!ModelState.IsValid) return CustomModelStateResponse<LoginResponseDto>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<LoginResponseDto>(ModelState);
 
         const string userNotAllowed = "User not allowed. Please contact support.";
         const string userBlocked = "Account temporarily locked due to multiple failed attempts.";
@@ -479,7 +489,8 @@ public class AuthController(
             true
         );
 
-        if (result.Succeeded) return CustomResponse(await GenerateCredentialsAsync(model.Email));
+        if (result.Succeeded)
+            return CustomResponse(await GenerateCredentialsAsync(model.Email));
 
         string error;
 
@@ -513,7 +524,8 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Root<LoginResponseDto>>> RefreshSession(RefreshTokenDto model)
     {
-        if (!ModelState.IsValid) return CustomModelStateResponse<LoginResponseDto>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<LoginResponseDto>(ModelState);
 
         const string invalidToken = "Invalid or expired token.";
         const string userLockedOut = "Account is locked. Please contact support.";
@@ -569,7 +581,8 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Root<string>>> FirstAccess(ChangePasswordDto model)
     {
-        if (!ModelState.IsValid) return CustomModelStateResponse<string>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<string>(ModelState);
 
         var user = await FindUserByEmailAsync(model.Email);
 
@@ -596,7 +609,8 @@ public class AuthController(
             );
 
             const string notification = "Email Confirmation Required";
-            const string message = $"Please confirm your email by clicking here: <a href='[LINK]'>Confirm Email</a>";
+            const string message =
+                $"Please confirm your email by clicking here: <a href='[LINK]'>Confirm Email</a>";
             const string title = "Confirm Your Email";
             const string successMessage = "Confirmation email sent successfully.";
             const string failMessage = "Failed to send confirmation email.";
@@ -619,7 +633,8 @@ public class AuthController(
                 env: WebHostEnvironment.EnvironmentName
             );
 
-            if (resultEmail) return CustomResponse(successMessage);
+            if (resultEmail)
+                return CustomResponse(successMessage);
 
             NotifyError(failMessage);
             return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
@@ -672,7 +687,8 @@ public class AuthController(
             return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
         }
 
-        if (!ModelState.IsValid) return CustomModelStateResponse<string>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<string>(ModelState);
 
         var user = await FindUserByIdAsync(id);
 
@@ -726,12 +742,12 @@ public class AuthController(
             }
         }
 
-        foreach (var oldClaim in from oldClaim in oldClaims
-                 let removeClaim = newClaims.FirstOrDefault(claim =>
-                     claim.Type.Equals(oldClaim.Type)
-                 )
-                 where removeClaim is null
-                 select oldClaim)
+        foreach (
+            var oldClaim in from oldClaim in oldClaims
+            let removeClaim = newClaims.FirstOrDefault(claim => claim.Type.Equals(oldClaim.Type))
+            where removeClaim is null
+            select oldClaim
+        )
         {
             await userManager.RemoveClaimAsync(user, oldClaim);
         }
@@ -768,7 +784,8 @@ public class AuthController(
 
         var result = await userManager.UpdateAsync(user);
 
-        if (result.Succeeded) return CustomResponse<string>(statusCode: HttpStatusCode.NoContent);
+        if (result.Succeeded)
+            return CustomResponse<string>(statusCode: HttpStatusCode.NoContent);
 
         result.Errors.ToList().ForEach(x => NotifyError(x.Description));
         return CustomResponse<string>(statusCode: HttpStatusCode.BadRequest);
@@ -801,16 +818,28 @@ public class AuthController(
             {
                 Id = user.Id,
                 Email = email,
-                RoleClaims = roleClaims.Select(c => new ClaimDto { Type = c.Type, Value = c.Value }),
-                UserClaims = userClaims.Select(c => new ClaimDto { Type = c.Type, Value = c.Value }),
-                UserConfig = 
+                RoleClaims = roleClaims.Select(c => new ClaimDto
+                {
+                    Type = c.Type,
+                    Value = c.Value,
+                }),
+                UserClaims = userClaims.Select(c => new ClaimDto
+                {
+                    Type = c.Type,
+                    Value = c.Value,
+                }),
+                UserConfig =
                 [
                     new ClaimDto { Type = "Role", Value = role.Name },
                     new ClaimDto { Type = "Level", Value = role.Level.ToString() },
                     new ClaimDto { Type = "FirstAccess", Value = user.FirstAccess.ToString() },
-                    new ClaimDto { Type = "EmailConfirmed", Value = user.EmailConfirmed.ToString() }
-                ]
-            }
+                    new ClaimDto
+                    {
+                        Type = "EmailConfirmed",
+                        Value = user.EmailConfirmed.ToString(),
+                    },
+                ],
+            },
         };
     }
 
@@ -818,7 +847,8 @@ public class AuthController(
         ApplicationUser user,
         DateTime expirationDate,
         ApplicationRole role,
-        IList<Claim> roleClaims)
+        IList<Claim> roleClaims
+    )
     {
         var defaultClaims = new List<Claim>
         {
@@ -826,8 +856,12 @@ public class AuthController(
             new(JwtRegisteredClaimNames.Email, user.Email ?? throw new InvalidOperationException()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()),
-            new(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64),
-            new("role", role.Name ?? throw new InvalidOperationException())
+            new(
+                JwtRegisteredClaimNames.Iat,
+                ToUnixEpochDate(DateTime.UtcNow).ToString(),
+                ClaimValueTypes.Integer64
+            ),
+            new("role", role.Name ?? throw new InvalidOperationException()),
         };
 
         var jwt = new JwtSecurityToken(
@@ -848,7 +882,7 @@ public class AuthController(
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new("token_type", "refresh")
+            new("token_type", "refresh"),
         };
 
         var jwt = new JwtSecurityToken(
@@ -863,7 +897,6 @@ public class AuthController(
         return new JwtSecurityTokenHandler().WriteToken(jwt);
     }
 
-
     private TokenValidationParameters GetValidationParameters() =>
         new()
         {
@@ -875,7 +908,7 @@ public class AuthController(
             ValidAudience = _jwtOptions.Audience,
             ValidateLifetime = true,
             RequireExpirationTime = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
         };
 
     private async Task<ApplicationUser?> FindUserByEmailAsync(string email) =>
@@ -889,12 +922,11 @@ public class AuthController(
 
     private static long ToUnixEpochDate(DateTime date) =>
         (long)
-        Math.Round(
-            (
-                date.ToUniversalTime()
-                - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)
-            ).TotalSeconds
-        );
+            Math.Round(
+                (
+                    date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)
+                ).TotalSeconds
+            );
 
     private static string GenerateRandomPassword(PasswordOptions? opts = null)
     {
@@ -905,7 +937,7 @@ public class AuthController(
             RequireDigit = true,
             RequireLowercase = true,
             RequireNonAlphanumeric = true,
-            RequireUppercase = true
+            RequireUppercase = true,
         };
 
         string[] randomChars =
@@ -913,7 +945,7 @@ public class AuthController(
             "ABCDEFGHJKLMNOPQRSTUVWXYZ",
             "abcdefghijkmnopqrstuvwxyz",
             "0123456789",
-            "!@$?_-"
+            "!@$?_-",
         ];
 
         CryptoRandom rand = new();

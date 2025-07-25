@@ -6,12 +6,13 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Serilog;
 using TecChallenge.Application.Configurations;
+using TecChallenge.Application.Data;
 using TecChallenge.Data.Contexts;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
+builder
+    .Configuration.SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
     .AddEnvironmentVariables();
@@ -47,27 +48,16 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.ApplyCurrentCultureToResponseHeaders = true;
 });
 
-if (builder.Environment.IsProduction()) builder.Services.AddApplicationInsightsTelemetry();
-
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
 
 app.UseApiConfig(app.Environment);
 
-if (app.Environment.IsDevelopment())
-{
-    var apiVersionDescriptionProvider =
-        app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+var apiVersionDescriptionProvider =
+    app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
-    app.UseSwaggerConfig(apiVersionDescriptionProvider);
+app.UseSwaggerConfig(apiVersionDescriptionProvider);
 
-    await app.InitializeIdentityDatabase();
-}
+await app.InitializeIdentityDatabase();
 
 app.UseRequestLocalization(
     app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value

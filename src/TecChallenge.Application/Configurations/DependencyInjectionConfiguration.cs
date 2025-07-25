@@ -36,7 +36,7 @@ public static class DependencyInjectionConfiguration
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
         // services.AddSingleton<IEmailService, EmailService>();
-        
+
         services.AddSingleton<IMockEmailService, MockEmailService>();
 
         services.AddScoped<IUser, AspNetUser>();

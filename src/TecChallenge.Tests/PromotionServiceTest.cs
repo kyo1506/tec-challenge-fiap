@@ -1,11 +1,6 @@
-﻿using FluentAssertions;
+﻿using System.Linq.Expressions;
+using FluentAssertions;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using TecChallenge.Domain.Entities;
 using TecChallenge.Domain.Interfaces;
 using TecChallenge.Domain.Notifications;
@@ -20,6 +15,7 @@ public class PromotionServiceTest
     private readonly Mock<IPromotionGameRepository> _promotionGameRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly PromotionService _promotionService;
+
     public PromotionServiceTest()
     {
         _notifierMock = new Mock<INotifier>();
@@ -33,6 +29,7 @@ public class PromotionServiceTest
             _unitOfWorkMock.Object
         );
     }
+
     [Fact]
     public async Task AddPromotion_ValidAndSuccess()
     {
@@ -40,21 +37,27 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(15)
+            EndDate = DateTime.UtcNow.AddDays(15),
         };
 
         _promotionRepositoryMock
-            .Setup(p => p.AnyAsync(It.IsAny<Expression<Func<Promotion, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.AnyAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
 
-        _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _unitOfWorkMock.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _promotionService.AddAsync(promotion);
         result.Should().BeTrue();
 
-        _promotionRepositoryMock.Verify(r => r.AddAsync(promotion, It.IsAny<CancellationToken>()), Times.Once);
+        _promotionRepositoryMock.Verify(
+            r => r.AddAsync(promotion, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         _notifierMock.Verify(n => n.Handle(It.IsAny<Notification>()), Times.Never);
     }
@@ -66,19 +69,35 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(15)
+            EndDate = DateTime.UtcNow.AddDays(15),
         };
 
         _promotionRepositoryMock
-            .Setup(p => p.AnyAsync(It.IsAny<Expression<Func<Promotion, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.AnyAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(true);
 
         var result = await _promotionService.AddAsync(promotion);
         result.Should().BeFalse();
 
-        _promotionRepositoryMock.Verify(r => r.AddAsync(promotion, It.IsAny<CancellationToken>()), Times.Never);
+        _promotionRepositoryMock.Verify(
+            r => r.AddAsync(promotion, It.IsAny<CancellationToken>()),
+            Times.Never
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _notifierMock.Verify(n => n.Handle(It.Is<Notification>(n => n.Message == "There is already a promotion with this name in the records")), Times.Once);
+        _notifierMock.Verify(
+            n =>
+                n.Handle(
+                    It.Is<Notification>(n =>
+                        n.Message == "There is already a promotion with this name in the records"
+                    )
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -88,12 +107,15 @@ public class PromotionServiceTest
         {
             Name = "",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(-15)
+            EndDate = DateTime.UtcNow.AddDays(-15),
         };
         var result = await _promotionService.AddAsync(promotion);
         result.Should().BeFalse();
 
-        _promotionRepositoryMock.Verify(r => r.AddAsync(promotion, It.IsAny<CancellationToken>()), Times.Never);
+        _promotionRepositoryMock.Verify(
+            r => r.AddAsync(promotion, It.IsAny<CancellationToken>()),
+            Times.Never
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
         _notifierMock.Verify(n => n.Handle(It.IsAny<Notification>()), Times.AtLeastOnce);
     }
@@ -105,23 +127,27 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(15)
+            EndDate = DateTime.UtcNow.AddDays(15),
         };
 
         _promotionRepositoryMock
-            .Setup(p => p.AnyAsync(It.IsAny<Expression<Func<Promotion, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.AnyAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
 
         _promotionRepositoryMock
             .Setup(p => p.AddAsync(It.IsAny<Promotion>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Add exception"));
 
-
         _unitOfWorkMock
             .Setup(u => u.RollbackAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        Func<Task> act = async() => await _promotionService.AddAsync(promotion);
+        Func<Task> act = async () => await _promotionService.AddAsync(promotion);
 
         await act.Should().ThrowAsync<Exception>().WithMessage("Add exception");
 
@@ -134,11 +160,16 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(15)
+            EndDate = DateTime.UtcNow.AddDays(15),
         };
 
         _promotionRepositoryMock
-            .Setup(p => p.AnyAsync(It.IsAny<Expression<Func<Promotion, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.AnyAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
 
         _promotionRepositoryMock
@@ -168,14 +199,14 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(15)
+            EndDate = DateTime.UtcNow.AddDays(15),
         };
 
         var promotionUpdate = new Promotion
         {
             Name = "Promotion Test Update",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(5)
+            EndDate = DateTime.UtcNow.AddDays(5),
         };
 
         _promotionRepositoryMock
@@ -183,21 +214,33 @@ public class PromotionServiceTest
             .ReturnsAsync(promotion);
 
         _promotionRepositoryMock
-            .Setup(p => p.AnyAsync(It.IsAny<Expression<Func<Promotion, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.AnyAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
 
-        _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _unitOfWorkMock.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _promotionService.UpdateAsync(id, promotionUpdate);
         result.Should().BeTrue();
 
-        _promotionRepositoryMock.Verify(r => 
-            r.Update(It.Is<Promotion>(p => p.Name == promotionUpdate.Name && p.StartDate == promotionUpdate.StartDate && p.EndDate == promotionUpdate.EndDate)),
-                Times.Once);
+        _promotionRepositoryMock.Verify(
+            r =>
+                r.Update(
+                    It.Is<Promotion>(p =>
+                        p.Name == promotionUpdate.Name
+                        && p.StartDate == promotionUpdate.StartDate
+                        && p.EndDate == promotionUpdate.EndDate
+                    )
+                ),
+            Times.Once
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
     [Fact]
     public async Task UpdatePromotion_InvalidModel()
     {
@@ -206,13 +249,16 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test Update",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(-5)
+            EndDate = DateTime.UtcNow.AddDays(-5),
         };
 
-        var result = await _promotionService.UpdateAsync(id,promotionUpdate);
+        var result = await _promotionService.UpdateAsync(id, promotionUpdate);
         result.Should().BeFalse();
 
-        _promotionRepositoryMock.Verify(p => p.FirstOrDefaultAsync(x => x.Id == id, true), Times.Never);
+        _promotionRepositoryMock.Verify(
+            p => p.FirstOrDefaultAsync(x => x.Id == id, true),
+            Times.Never
+        );
         _promotionRepositoryMock.Verify(p => p.Update(It.IsAny<Promotion>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -225,7 +271,7 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test Update",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(5)
+            EndDate = DateTime.UtcNow.AddDays(5),
         };
         _promotionRepositoryMock
             .Setup(p => p.FirstOrDefaultAsync(x => x.Id == id, true))
@@ -236,8 +282,10 @@ public class PromotionServiceTest
 
         _promotionRepositoryMock.Verify(p => p.Update(It.IsAny<Promotion>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _notifierMock.Verify(n => n.Handle(It.Is<Notification>(not => not.Message.Contains("Promotion not found"))), Times.Once);
-
+        _notifierMock.Verify(
+            n => n.Handle(It.Is<Notification>(not => not.Message.Contains("Promotion not found"))),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -248,22 +296,27 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(5)
+            EndDate = DateTime.UtcNow.AddDays(5),
         };
 
         var promotionUpdate = new Promotion
         {
             Name = "Promotion Test Update",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(5)
+            EndDate = DateTime.UtcNow.AddDays(5),
         };
 
         _promotionRepositoryMock
-                    .Setup(p => p.FirstOrDefaultAsync(x => x.Id == id, true))
-                    .ReturnsAsync(promotion);
+            .Setup(p => p.FirstOrDefaultAsync(x => x.Id == id, true))
+            .ReturnsAsync(promotion);
 
         _promotionRepositoryMock
-            .Setup(p => p.AnyAsync(It.IsAny<Expression<Func<Promotion, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.AnyAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(true);
 
         var result = await _promotionService.UpdateAsync(id, promotionUpdate);
@@ -271,8 +324,19 @@ public class PromotionServiceTest
 
         _promotionRepositoryMock.Verify(p => p.Update(It.IsAny<Promotion>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _notifierMock.Verify(n => n.Handle(It.Is<Notification>(not => not.Message.Contains("There is already a promotion with this name in the records"))), Times.Once);
+        _notifierMock.Verify(
+            n =>
+                n.Handle(
+                    It.Is<Notification>(not =>
+                        not.Message.Contains(
+                            "There is already a promotion with this name in the records"
+                        )
+                    )
+                ),
+            Times.Once
+        );
     }
+
     [Fact]
     public async Task UpdatePromotion_UpdateThrowsException()
     {
@@ -281,14 +345,14 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(15)
+            EndDate = DateTime.UtcNow.AddDays(15),
         };
 
         var promotionUpdate = new Promotion
         {
             Name = "Promotion Test Update",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(5)
+            EndDate = DateTime.UtcNow.AddDays(5),
         };
 
         _promotionRepositoryMock
@@ -296,7 +360,12 @@ public class PromotionServiceTest
             .ReturnsAsync(promotion);
 
         _promotionRepositoryMock
-            .Setup(p => p.AnyAsync(It.IsAny<Expression<Func<Promotion, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.AnyAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
 
         _promotionRepositoryMock
@@ -313,6 +382,7 @@ public class PromotionServiceTest
         _promotionRepositoryMock.Verify(p => p.Update(It.IsAny<Promotion>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
+
     [Fact]
     public async Task UpdatePromotion_CommitThrowsException()
     {
@@ -321,14 +391,14 @@ public class PromotionServiceTest
         {
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(15)
+            EndDate = DateTime.UtcNow.AddDays(15),
         };
 
         var promotionUpdate = new Promotion
         {
             Name = "Promotion Test Update",
             StartDate = DateTime.UtcNow.AddDays(-1),
-            EndDate = DateTime.UtcNow.AddDays(5)
+            EndDate = DateTime.UtcNow.AddDays(5),
         };
 
         _promotionRepositoryMock
@@ -336,7 +406,12 @@ public class PromotionServiceTest
             .ReturnsAsync(promotion);
 
         _promotionRepositoryMock
-            .Setup(p => p.AnyAsync(It.IsAny<Expression<Func<Promotion, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(p =>
+                p.AnyAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
 
         _unitOfWorkMock
@@ -364,20 +439,20 @@ public class PromotionServiceTest
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddDays(10),
-            GamesOnSale = []
+            GamesOnSale = [],
         };
 
         _promotionRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Promotion, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<Promotion, object>>[]>()
-            ))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<Promotion, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotion);
 
-        _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _unitOfWorkMock.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _promotionService.DeleteAsync(id);
 
@@ -393,11 +468,13 @@ public class PromotionServiceTest
         var id = Guid.NewGuid();
 
         _promotionRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Promotion, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<Promotion, object>>[]>()
-            ))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<Promotion, object>>[]>()
+                )
+            )
             .ReturnsAsync((Promotion)null);
 
         var result = await _promotionService.DeleteAsync(id);
@@ -407,6 +484,7 @@ public class PromotionServiceTest
         _promotionRepositoryMock.Verify(p => p.Delete(It.IsAny<Promotion>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
+
     [Fact]
     public async Task DeletePromotion_WithGamesOnSale_CannotDelete()
     {
@@ -417,15 +495,17 @@ public class PromotionServiceTest
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddDays(10),
-            GamesOnSale = [new PromotionGame()]
+            GamesOnSale = [new PromotionGame()],
         };
 
         _promotionRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Promotion, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<Promotion, object>>[]>()
-            ))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<Promotion, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotion);
 
         var result = await _promotionService.DeleteAsync(id);
@@ -446,19 +526,20 @@ public class PromotionServiceTest
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddDays(10),
-            GamesOnSale = []
+            GamesOnSale = [],
         };
 
         _promotionRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Promotion, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<Promotion, object>>[]>()
-            ))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<Promotion, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotion);
 
-        _promotionRepositoryMock
-            .Setup(p => p.Delete(It.IsAny<Promotion>()));
+        _promotionRepositoryMock.Setup(p => p.Delete(It.IsAny<Promotion>()));
 
         _unitOfWorkMock
             .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
@@ -486,7 +567,9 @@ public class PromotionServiceTest
         model.DiscountPercentage = 20;
 
         _promotionGameRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true)
+            )
             .ReturnsAsync((PromotionGame)null);
 
         var result = await _promotionService.UpdatePromotionGameAsync(id, model);
@@ -510,17 +593,19 @@ public class PromotionServiceTest
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddDays(10),
-            GamesOnSale = [existingGame]
+            GamesOnSale = [existingGame],
         };
 
         var gamesOnSale = new List<PromotionGame> { existingGame };
 
         _promotionRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Promotion, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<Promotion, object>>[]>()
-            ))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<Promotion, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotion);
 
         var result = await _promotionService.AddGamesOnSaleAsync(id, gamesOnSale);
@@ -542,25 +627,29 @@ public class PromotionServiceTest
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddDays(10),
-            GamesOnSale = []
+            GamesOnSale = [],
         };
 
         var newGame = new PromotionGame { GameId = gameId };
         var gamesOnSale = new List<PromotionGame> { newGame };
 
         _promotionRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Promotion, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<Promotion, object>>[]>()
-            ))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<Promotion, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotion);
 
         _promotionGameRepositoryMock
-            .Setup(pg => pg.AnyAsync(
-                It.IsAny<Expression<Func<PromotionGame, bool>>>(),
-                It.IsAny<CancellationToken>()
-            ))
+            .Setup(pg =>
+                pg.AnyAsync(
+                    It.IsAny<Expression<Func<PromotionGame, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(true);
 
         var result = await _promotionService.AddGamesOnSaleAsync(id, gamesOnSale);
@@ -582,36 +671,41 @@ public class PromotionServiceTest
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddDays(10),
-            GamesOnSale = []
+            GamesOnSale = [],
         };
 
         var newGame = new PromotionGame { GameId = gameId };
         var gamesOnSale = new List<PromotionGame> { newGame };
 
         _promotionRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Promotion, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<Promotion, object>>[]>()
-            ))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<Promotion, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotion);
 
         _promotionGameRepositoryMock
-            .Setup(pg => pg.AnyAsync(
-                It.IsAny<Expression<Func<PromotionGame, bool>>>(),
-                It.IsAny<CancellationToken>()
-            ))
+            .Setup(pg =>
+                pg.AnyAsync(
+                    It.IsAny<Expression<Func<PromotionGame, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
 
-        _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _unitOfWorkMock.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _promotionService.AddGamesOnSaleAsync(id, gamesOnSale);
 
         result.Should().BeTrue();
 
-        _promotionRepositoryMock.Verify(p => p.Update(It.Is<Promotion>(x => x.GamesOnSale.Contains(newGame))), Times.Once);
+        _promotionRepositoryMock.Verify(
+            p => p.Update(It.Is<Promotion>(x => x.GamesOnSale.Contains(newGame))),
+            Times.Once
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -626,29 +720,32 @@ public class PromotionServiceTest
             Name = "Promotion Test",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddDays(10),
-            GamesOnSale = []
+            GamesOnSale = [],
         };
 
         var newGame = new PromotionGame { GameId = gameId };
         var gamesOnSale = new List<PromotionGame> { newGame };
 
         _promotionRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Promotion, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<Promotion, object>>[]>()
-            ))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Promotion, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<Promotion, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotion);
 
         _promotionGameRepositoryMock
-            .Setup(pg => pg.AnyAsync(
-                It.IsAny<Expression<Func<PromotionGame, bool>>>(),
-                It.IsAny<CancellationToken>()
-            ))
+            .Setup(pg =>
+                pg.AnyAsync(
+                    It.IsAny<Expression<Func<PromotionGame, bool>>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
 
-        _promotionRepositoryMock
-            .Setup(p => p.Update(It.IsAny<Promotion>()));
+        _promotionRepositoryMock.Setup(p => p.Update(It.IsAny<Promotion>()));
 
         _unitOfWorkMock
             .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
@@ -664,6 +761,7 @@ public class PromotionServiceTest
 
         _unitOfWorkMock.Verify(u => u.RollbackAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
     [Fact]
     public async Task UpdatePromotionGame_PromotionGameNotFound()
     {
@@ -675,7 +773,9 @@ public class PromotionServiceTest
         model.DiscountPercentage = 20;
 
         _promotionGameRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true)
+            )
             .ReturnsAsync((PromotionGame)null);
 
         var result = await _promotionService.UpdatePromotionGameAsync(id, model);
@@ -702,7 +802,9 @@ public class PromotionServiceTest
         model.DiscountPercentage = 20;
 
         _promotionGameRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true)
+            )
             .ReturnsAsync(existing);
 
         var result = await _promotionService.UpdatePromotionGameAsync(id, model);
@@ -731,19 +833,25 @@ public class PromotionServiceTest
         model.DiscountPercentage = 25;
 
         _promotionGameRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true)
+            )
             .ReturnsAsync(existing);
 
-        _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _unitOfWorkMock.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _promotionService.UpdatePromotionGameAsync(id, model);
 
         result.Should().BeTrue();
         existing.DiscountPercentage.Should().Be(model.DiscountPercentage);
 
-        _promotionGameRepositoryMock.Verify(p => p.Update(It.Is<PromotionGame>(pg => pg.DiscountPercentage == model.DiscountPercentage)), Times.Once);
+        _promotionGameRepositoryMock.Verify(
+            p =>
+                p.Update(
+                    It.Is<PromotionGame>(pg => pg.DiscountPercentage == model.DiscountPercentage)
+                ),
+            Times.Once
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -765,11 +873,12 @@ public class PromotionServiceTest
         model.DiscountPercentage = 30;
 
         _promotionGameRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(It.IsAny<Expression<Func<PromotionGame, bool>>>(), true)
+            )
             .ReturnsAsync(existing);
 
-        _promotionGameRepositoryMock
-            .Setup(p => p.Update(It.IsAny<PromotionGame>()));
+        _promotionGameRepositoryMock.Setup(p => p.Update(It.IsAny<PromotionGame>()));
 
         _unitOfWorkMock
             .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
@@ -792,11 +901,13 @@ public class PromotionServiceTest
         var id = Guid.NewGuid();
 
         _promotionGameRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<PromotionGame, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<PromotionGame, object>>[]>()
-            ))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<PromotionGame, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<PromotionGame, object>>[]>()
+                )
+            )
             .ReturnsAsync((PromotionGame)null);
 
         var result = await _promotionService.DeletePromotionGameAsync(id);
@@ -814,10 +925,13 @@ public class PromotionServiceTest
         promotionGame.WalletTransactions.Add(new WalletTransaction());
 
         _promotionGameRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<PromotionGame, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<PromotionGame, object>>[]>()))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<PromotionGame, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<PromotionGame, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotionGame);
 
         var result = await _promotionService.DeletePromotionGameAsync(promotionGame.Id);
@@ -831,24 +945,28 @@ public class PromotionServiceTest
     [Fact]
     public async Task DeletePromotionGame_Success()
     {
-        var promotionGame = new PromotionGame(); 
+        var promotionGame = new PromotionGame();
 
         _promotionGameRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<PromotionGame, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<PromotionGame, object>>[]>()))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<PromotionGame, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<PromotionGame, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotionGame);
 
-        _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _unitOfWorkMock.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _promotionService.DeletePromotionGameAsync(promotionGame.Id);
 
         result.Should().BeTrue();
 
-        _promotionGameRepositoryMock.Verify(p => p.Delete(It.Is<PromotionGame>(pg => pg == promotionGame)), Times.Once);
+        _promotionGameRepositoryMock.Verify(
+            p => p.Delete(It.Is<PromotionGame>(pg => pg == promotionGame)),
+            Times.Once
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -858,14 +976,16 @@ public class PromotionServiceTest
         var promotionGame = new PromotionGame();
 
         _promotionGameRepositoryMock
-            .Setup(p => p.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<PromotionGame, bool>>>(),
-                true,
-                It.IsAny<Expression<Func<PromotionGame, object>>[]>()))
+            .Setup(p =>
+                p.FirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<PromotionGame, bool>>>(),
+                    true,
+                    It.IsAny<Expression<Func<PromotionGame, object>>[]>()
+                )
+            )
             .ReturnsAsync(promotionGame);
 
-        _promotionGameRepositoryMock
-            .Setup(p => p.Delete(It.IsAny<PromotionGame>()));
+        _promotionGameRepositoryMock.Setup(p => p.Delete(It.IsAny<PromotionGame>()));
 
         _unitOfWorkMock
             .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
@@ -875,7 +995,8 @@ public class PromotionServiceTest
             .Setup(u => u.RollbackAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        Func<Task> act = async () => await _promotionService.DeletePromotionGameAsync(promotionGame.Id);
+        Func<Task> act = async () =>
+            await _promotionService.DeletePromotionGameAsync(promotionGame.Id);
 
         await act.Should().ThrowAsync<Exception>().WithMessage("Commit failed");
 

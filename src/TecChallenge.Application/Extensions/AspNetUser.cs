@@ -8,9 +8,7 @@ public class AspNetUser(IHttpContextAccessor accessor) : IUser
 
     public Guid GetUserId()
     {
-        return IsAuthenticated()
-            ? Guid.Parse(accessor.HttpContext.User.GetUserId())
-            : Guid.Empty;
+        return IsAuthenticated() ? Guid.Parse(accessor.HttpContext.User.GetUserId()) : Guid.Empty;
     }
 
     public string GetUserEmail()
@@ -43,7 +41,8 @@ public static class ClaimsPrincipalExtensions
 {
     public static string GetUserId(this ClaimsPrincipal principal)
     {
-        if (principal == null) throw new ArgumentException(null, nameof(principal));
+        if (principal == null)
+            throw new ArgumentException(null, nameof(principal));
 
         var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
         return claim?.Value;
@@ -51,7 +50,8 @@ public static class ClaimsPrincipalExtensions
 
     public static string GetUserEmail(this ClaimsPrincipal principal)
     {
-        if (principal == null) throw new ArgumentException(null, nameof(principal));
+        if (principal == null)
+            throw new ArgumentException(null, nameof(principal));
 
         var claim = principal.FindFirst(ClaimTypes.Email);
         return claim?.Value;

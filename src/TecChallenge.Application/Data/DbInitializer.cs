@@ -8,9 +8,12 @@ namespace TecChallenge.Application.Data;
 
 public static class DbInitializer
 {
-    public static async Task Initialize(AppDbContext appDbContext, AuthDbContext authDbContext,
+    public static async Task Initialize(
+        AppDbContext appDbContext,
+        AuthDbContext authDbContext,
         UserManager<ApplicationUser> userManager,
-        RoleManager<ApplicationRole> roleManager)
+        RoleManager<ApplicationRole> roleManager
+    )
     {
         await authDbContext.Database.MigrateAsync();
         await appDbContext.Database.MigrateAsync();
@@ -29,8 +32,20 @@ public static class DbInitializer
     {
         var roles = new List<ApplicationRole>
         {
-            new() { Name = "Admin", NormalizedName = "ADMIN", IsDeleted = false, Level = 0 },
-            new() { Name = "User", NormalizedName = "USER", IsDeleted = false, Level = 1 }
+            new()
+            {
+                Name = "Admin",
+                NormalizedName = "ADMIN",
+                IsDeleted = false,
+                Level = 0,
+            },
+            new()
+            {
+                Name = "User",
+                NormalizedName = "USER",
+                IsDeleted = false,
+                Level = 1,
+            },
         };
 
         foreach (var role in roles)
@@ -42,7 +57,10 @@ public static class DbInitializer
         }
     }
 
-    private static async Task SeedUsers(AppDbContext context, UserManager<ApplicationUser> userManager)
+    private static async Task SeedUsers(
+        AppDbContext context,
+        UserManager<ApplicationUser> userManager
+    )
     {
         var users = new List<ApplicationUser>
         {
@@ -52,7 +70,7 @@ public static class DbInitializer
                 Email = "vinicius_pinheiro05@hotmail.com",
                 EmailConfirmed = true,
                 IsDeleted = false,
-                FirstAccess = false
+                FirstAccess = false,
             },
             new()
             {
@@ -60,14 +78,15 @@ public static class DbInitializer
                 Email = "vinicius_pinheiro02@hotmail.com",
                 EmailConfirmed = true,
                 IsDeleted = false,
-                FirstAccess = false
-            }
+                FirstAccess = false,
+            },
         };
 
         foreach (var user in users)
         {
             var existingUser = await userManager.FindByEmailAsync(user.Email);
-            if (existingUser != null) continue;
+            if (existingUser != null)
+                continue;
             var result = await userManager.CreateAsync(user, "Default@123");
             if (!result.Succeeded)
             {
@@ -82,8 +101,12 @@ public static class DbInitializer
 
     private static async Task SeedUserRoles(AuthDbContext context)
     {
-        var admin = await context.Users.FirstOrDefaultAsync(u => u.Email == "vinicius_pinheiro05@hotmail.com");
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == "vinicius_pinheiro02@hotmail.com");
+        var admin = await context.Users.FirstOrDefaultAsync(u =>
+            u.Email == "vinicius_pinheiro05@hotmail.com"
+        );
+        var user = await context.Users.FirstOrDefaultAsync(u =>
+            u.Email == "vinicius_pinheiro02@hotmail.com"
+        );
 
         var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
         var userRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
@@ -93,7 +116,7 @@ public static class DbInitializer
             var userRoles = new List<IdentityUserRole<Guid>>
             {
                 new() { UserId = admin.Id, RoleId = adminRole.Id },
-                new() { UserId = user.Id, RoleId = userRole.Id }
+                new() { UserId = user.Id, RoleId = userRole.Id },
             };
 
             await context.UserRoles.AddRangeAsync(userRoles);

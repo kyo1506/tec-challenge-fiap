@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace TecChallenge.Shared.Models.Dtos.Requests;
@@ -13,5 +12,6 @@ public class GameAddRequest
     )]
     public string Name { get; set; } = string.Empty;
 
-    [Required] public decimal Price { get; set; }
+    [Required]
+    public decimal Price { get; set; }
 }

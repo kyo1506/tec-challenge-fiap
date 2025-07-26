@@ -1,41 +1,34 @@
-using System.Data;
+using NewRelic.LogEnrichers.Serilog;
+using NpgsqlTypes;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
-using Serilog.Sinks.MSSqlServer;
+using Serilog.Sinks.PostgreSQL;
 
 namespace TecChallenge.Application.Configurations;
 
 public static class LoggingConfiguration
 {
-    public static void AddLoggingConfiguration(this IServiceCollection services,
-        IConfiguration configuration)
+    public static void AddLoggingConfiguration(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        var sinkOptions = new MSSqlServerSinkOptions { TableName = "Log" };
-
-        var columnOptions = new ColumnOptions
+        var columnWriters = new Dictionary<string, ColumnWriterBase>
         {
-            Id =
+            { "Message", new RenderedMessageColumnWriter(NpgsqlDbType.Text) },
+            { "MessageTemplate", new MessageTemplateColumnWriter(NpgsqlDbType.Text) },
+            { "Level", new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
+            { "TimeStamp", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
+            { "Exception", new ExceptionColumnWriter(NpgsqlDbType.Text) },
+            { "Properties", new PropertiesColumnWriter(NpgsqlDbType.Jsonb) },
             {
-                DataType = SqlDbType.BigInt
+                "ApplicationName",
+                new SinglePropertyColumnWriter("ApplicationName", PropertyWriteMethod.Raw)
             },
-            TimeStamp =
-            {
-                DataType = SqlDbType.DateTime2
-            }
         };
-        columnOptions.Store.Remove(StandardColumn.Properties);
-        columnOptions.AdditionalColumns =
-        [
-            new SqlColumn
-            {
-                ColumnName = "ApplicationName",
-                DataType = SqlDbType.NVarChar,
-                DataLength = 255
-            }
-        ];
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
@@ -48,18 +41,20 @@ public static class LoggingConfiguration
             .Enrich.WithProcessId()
             .Enrich.WithMachineName()
             .Enrich.WithEnvironmentName()
+            .Enrich.WithNewRelicLogsInContext()
             .WriteTo.Console()
             .WriteTo.File(
                 path: "logs/log-.json",
                 rollingInterval: RollingInterval.Day,
                 rollOnFileSizeLimit: true,
                 retainedFileCountLimit: 7,
-                formatter: new JsonFormatter()
+                formatter: new NewRelicFormatter()
             )
-            .WriteTo.MSSqlServer(
-                connectionString,
-                sinkOptions,
-                columnOptions: columnOptions
+            .WriteTo.PostgreSQL(
+                connectionString: connectionString,
+                tableName: "Log",
+                needAutoCreateTable: false,
+                respectCase: true
             )
             .Filter.ByExcluding(logEvent => logEvent.RenderMessage().Contains("HTTP"))
             .CreateLogger();

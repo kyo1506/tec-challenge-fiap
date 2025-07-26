@@ -25,7 +25,7 @@ public static class SwaggerConfig
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey
+                    Type = SecuritySchemeType.ApiKey,
                 }
             );
 
@@ -38,11 +38,11 @@ public static class SwaggerConfig
                             Reference = new OpenApiReference
                             {
                                 Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
+                                Id = "Bearer",
+                            },
                         },
                         []
-                    }
+                    },
                 }
             );
 
@@ -51,8 +51,10 @@ public static class SwaggerConfig
         });
     }
 
-    public static void UseSwaggerConfig(this IApplicationBuilder app,
-        IApiVersionDescriptionProvider provider)
+    public static void UseSwaggerConfig(
+        this IApplicationBuilder app,
+        IApiVersionDescriptionProvider provider
+    )
     {
         app.UseSwagger();
         app.UseSwaggerUI(options =>
@@ -89,16 +91,17 @@ public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider)
             Contact = new OpenApiContact
             {
                 Name = "Vinicius Freire",
-                Email = "vinicius_pinheiro05@hotmail.com"
+                Email = "vinicius_pinheiro05@hotmail.com",
             },
             License = new OpenApiLicense
             {
                 Name = "MIT",
-                Url = new Uri("https://opensource.org/licenses/MIT")
-            }
+                Url = new Uri("https://opensource.org/licenses/MIT"),
+            },
         };
 
-        if (description.IsDeprecated) info.Description += " This version is obsolete!";
+        if (description.IsDeprecated)
+            info.Description += " This version is obsolete!";
 
         return info;
     }

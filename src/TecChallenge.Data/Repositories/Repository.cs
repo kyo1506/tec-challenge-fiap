@@ -25,10 +25,13 @@ public abstract class Repository<T>(DbContext context) : IRepository<T>
     public virtual async Task<T?> FirstOrDefaultAsync(
         Expression<Func<T, bool>> predicate,
         bool trackChanges = false,
-        params Expression<Func<T, object>>[] includes)
+        params Expression<Func<T, object>>[] includes
+    )
     {
-        var query = includes.Aggregate<Expression<Func<T, object>>?, IQueryable<T>>(_dbSet,
-            (current, include) => current.Include(include));
+        var query = includes.Aggregate<Expression<Func<T, object>>?, IQueryable<T>>(
+            _dbSet,
+            (current, include) => current.Include(include)
+        );
 
         query = !trackChanges ? query.AsNoTracking() : query.AsTracking();
 
@@ -37,10 +40,13 @@ public abstract class Repository<T>(DbContext context) : IRepository<T>
 
     public virtual async Task<IReadOnlyList<T>> WhereAsync(
         Expression<Func<T, bool>> predicate,
-        params Expression<Func<T, object>>[] includes)
+        params Expression<Func<T, object>>[] includes
+    )
     {
-        var query = includes.Aggregate<Expression<Func<T, object>>?, IQueryable<T>>(_dbSet,
-            (current, include) => current.Include(include));
+        var query = includes.Aggregate<Expression<Func<T, object>>?, IQueryable<T>>(
+            _dbSet,
+            (current, include) => current.Include(include)
+        );
 
         return await query.AsNoTracking().Where(predicate).ToListAsync();
     }
@@ -50,7 +56,7 @@ public abstract class Repository<T>(DbContext context) : IRepository<T>
         _dbSet.Update(entity);
         context.Entry(entity).State = EntityState.Modified;
     }
-    
+
     public virtual void Attach(T entity)
     {
         _dbSet.Attach(entity);
@@ -62,12 +68,18 @@ public abstract class Repository<T>(DbContext context) : IRepository<T>
         _dbSet.Remove(entity);
     }
 
-    public virtual async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+    public virtual async Task<bool> AnyAsync(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken ct = default
+    )
     {
         return await _dbSet.AnyAsync(predicate, ct);
     }
 
-    public virtual async Task<int> CountAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+    public virtual async Task<int> CountAsync(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken ct = default
+    )
     {
         return await _dbSet.CountAsync(predicate, ct);
     }

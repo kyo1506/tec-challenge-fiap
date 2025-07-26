@@ -1,9 +1,8 @@
-﻿using FluentAssertions;
+﻿using System.Linq.Expressions;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
-using System.Linq.Expressions;
 using TecChallenge.Domain.Entities;
-using TecChallenge.Domain.Entities.Validations;
 using TecChallenge.Domain.Interfaces;
 using TecChallenge.Domain.Notifications;
 using TecChallenge.Domain.Services;
@@ -16,6 +15,7 @@ public class GameServiceTest
     private readonly Mock<IGameRepository> _gameRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly GameService _gameService;
+
     public GameServiceTest()
     {
         _notifierMock = new Mock<INotifier>();
@@ -38,61 +38,71 @@ public class GameServiceTest
     [Fact]
     public async Task AddGame_ValidAndSuccess()
     {
-        var game = new Game
-        {
-            Name = "God Of War",
-            Price = 199
-        };
+        var game = new Game { Name = "God Of War", Price = 199 };
 
         _gameRepositoryMock
-            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(false);
 
-        _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _unitOfWorkMock.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _gameService.AddAsync(game);
-        
+
         result.Should().BeTrue();
 
-        _gameRepositoryMock.Verify(r => r.AddAsync(game, It.IsAny<CancellationToken>()), Times.Once);
+        _gameRepositoryMock.Verify(
+            r => r.AddAsync(game, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         _notifierMock.Verify(n => n.Handle(It.IsAny<Notification>()), Times.Never);
-
     }
 
     [Fact]
     public async Task AddGame_ErrorGameExists()
     {
-        var game = new Game
-        {
-            Name = "God Of War",
-            Price = 199
-        };
+        var game = new Game { Name = "God Of War", Price = 199 };
 
         _gameRepositoryMock
-            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(true);
 
         var result = await _gameService.AddAsync(game);
         result.Should().BeFalse();
 
-        _gameRepositoryMock.Verify(r => r.AddAsync(game, It.IsAny<CancellationToken>()), Times.Never);
+        _gameRepositoryMock.Verify(
+            r => r.AddAsync(game, It.IsAny<CancellationToken>()),
+            Times.Never
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _notifierMock.Verify(n => n.Handle(It.Is<Notification>(n => n.Message == "There is already a game with this name in the records")), Times.Once);
+        _notifierMock.Verify(
+            n =>
+                n.Handle(
+                    It.Is<Notification>(n =>
+                        n.Message == "There is already a game with this name in the records"
+                    )
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
     public async Task AddGame_InvalidModel()
     {
-        var game = new Game { Name = "", Price = 0 }; 
+        var game = new Game { Name = "", Price = 0 };
 
         var result = await _gameService.AddAsync(game);
 
         result.Should().BeFalse();
 
-        _gameRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+        _gameRepositoryMock.Verify(
+            r => r.AddAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
         _notifierMock.Verify(n => n.Handle(It.IsAny<Notification>()), Times.AtLeastOnce);
     }
@@ -103,7 +113,9 @@ public class GameServiceTest
         var game = new Game { Name = "God Of War", Price = 199 };
 
         _gameRepositoryMock
-            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(false);
 
         _gameRepositoryMock
@@ -127,7 +139,9 @@ public class GameServiceTest
         var game = new Game { Name = "God Of War", Price = 199 };
 
         _gameRepositoryMock
-            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(false);
 
         _gameRepositoryMock
@@ -154,25 +168,40 @@ public class GameServiceTest
     {
         var id = Guid.NewGuid();
         var existingGame = new Game { Name = "God Of War", Price = 100 };
-        var updatedGame = new Game { Name = "God Of War", Price = 150, IsActive = true };
+        var updatedGame = new Game
+        {
+            Name = "God Of War",
+            Price = 150,
+            IsActive = true,
+        };
 
         _gameRepositoryMock
             .Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingGame);
 
         _gameRepositoryMock
-            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(false);
 
-        _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _unitOfWorkMock.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _gameService.UpdateAsync(id, updatedGame);
 
         result.Should().BeTrue();
 
-        _gameRepositoryMock.Verify(r => r.Update(It.Is<Game>(g => g.Name == updatedGame.Name && g.Price == updatedGame.Price && g.IsActive == updatedGame.IsActive)), Times.Once);
+        _gameRepositoryMock.Verify(
+            r =>
+                r.Update(
+                    It.Is<Game>(g =>
+                        g.Name == updatedGame.Name
+                        && g.Price == updatedGame.Price
+                        && g.IsActive == updatedGame.IsActive
+                    )
+                ),
+            Times.Once
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -186,7 +215,10 @@ public class GameServiceTest
 
         result.Should().BeFalse();
 
-        _gameRepositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        _gameRepositoryMock.Verify(
+            r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
         _gameRepositoryMock.Verify(r => r.Update(It.IsAny<Game>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -207,7 +239,10 @@ public class GameServiceTest
 
         _gameRepositoryMock.Verify(r => r.Update(It.IsAny<Game>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _notifierMock.Verify(n => n.Handle(It.Is<Notification>(not => not.Message.Contains("Game not found"))), Times.Once);
+        _notifierMock.Verify(
+            n => n.Handle(It.Is<Notification>(not => not.Message.Contains("Game not found"))),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -222,7 +257,9 @@ public class GameServiceTest
             .ReturnsAsync(existingGame);
 
         _gameRepositoryMock
-            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(true);
 
         var result = await _gameService.UpdateAsync(id, updatedGame);
@@ -231,22 +268,44 @@ public class GameServiceTest
 
         _gameRepositoryMock.Verify(r => r.Update(It.IsAny<Game>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _notifierMock.Verify(n => n.Handle(It.Is<Notification>(not => not.Message.Contains("There is already a game with this name in the records"))), Times.Once);
+        _notifierMock.Verify(
+            n =>
+                n.Handle(
+                    It.Is<Notification>(not =>
+                        not.Message.Contains(
+                            "There is already a game with this name in the records"
+                        )
+                    )
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
     public async Task UpdateGame_ThrowsException()
     {
         var id = Guid.NewGuid();
-        var existingGame = new Game { Name = "God Of War", Price = 100, IsActive = false };
-        var updatedGame = new Game { Name = "God Of War", Price = 150, IsActive = true };
+        var existingGame = new Game
+        {
+            Name = "God Of War",
+            Price = 100,
+            IsActive = false,
+        };
+        var updatedGame = new Game
+        {
+            Name = "God Of War",
+            Price = 150,
+            IsActive = true,
+        };
 
         _gameRepositoryMock
             .Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingGame);
 
         _gameRepositoryMock
-            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.AnyAsync(It.IsAny<Expression<Func<Game, bool>>>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(false);
 
         _gameRepositoryMock
@@ -263,6 +322,7 @@ public class GameServiceTest
 
         _unitOfWorkMock.Verify(u => u.RollbackAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
     [Fact]
     public async Task DeleteGame_ValidAndSuccess()
     {
@@ -273,15 +333,16 @@ public class GameServiceTest
             .Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingGame);
 
-        _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        _unitOfWorkMock.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _gameService.DeleteAsync(id);
 
         result.Should().BeTrue();
 
-        _gameRepositoryMock.Verify(r => r.Update(It.Is<Game>(g => g.IsActive == false)), Times.Once);
+        _gameRepositoryMock.Verify(
+            r => r.Update(It.Is<Game>(g => g.IsActive == false)),
+            Times.Once
+        );
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -300,7 +361,10 @@ public class GameServiceTest
 
         _gameRepositoryMock.Verify(r => r.Update(It.IsAny<Game>()), Times.Never);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _notifierMock.Verify(n => n.Handle(It.Is<Notification>(not => not.Message.Contains("Game not found"))), Times.Once);
+        _notifierMock.Verify(
+            n => n.Handle(It.Is<Notification>(not => not.Message.Contains("Game not found"))),
+            Times.Once
+        );
     }
 
     [Fact]

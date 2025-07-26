@@ -27,8 +27,6 @@ services:
     ports:
       - "5001:5001"
     restart: on-failure
-    # --- MODIFIED depends_on ---
-    # This now waits for the healthcheck of postgres-db to pass before starting.
     depends_on:
       postgres-db:
         condition: service_healthy

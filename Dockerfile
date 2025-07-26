@@ -5,7 +5,6 @@ WORKDIR /src
 ENV HOME=/app
 ENV PATH="${PATH}:${HOME}/.dotnet/tools"
 ENV ASPNETCORE_URLS=http://+:5001
-# This tells the .NET runtime to use globalization features.
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 # This installs the necessary ICU libraries that provide culture data (like pt-BR) for Alpine Linux.

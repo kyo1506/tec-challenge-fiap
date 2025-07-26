@@ -1,7 +1,5 @@
 using TecChallenge.Domain.Entities;
-using TecChallenge.Shared.Models.Dtos;
 using TecChallenge.Shared.Models.Dtos.Requests;
-using TecChallenge.Shared.Models.Dtos.Responses;
 
 namespace TecChallenge.Application.Extensions;
 

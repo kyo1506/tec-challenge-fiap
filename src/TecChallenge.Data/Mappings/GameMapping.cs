@@ -20,7 +20,7 @@ public class GameMapping : IEntityTypeConfiguration<Game>
 
         builder.Property(p => p.UpdatedAt).IsRequired(false);
 
-        builder.HasIndex(x => x.Name, "IX_Game_Name").IsClustered(false);
+        builder.HasIndex(x => x.Name, "IX_Game_Name");
 
         builder.HasMany(p => p.LibraryItems)
             .WithOne(l => l.Game)

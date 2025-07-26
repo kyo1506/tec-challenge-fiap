@@ -10,15 +10,15 @@ public class LogMapping : IEntityTypeConfiguration<Log>
         
         builder.Property(t => t.Id).ValueGeneratedNever();
 
-        builder.Property(c => c.ApplicationName).HasColumnType("nvarchar(max)");
+        builder.Property(c => c.ApplicationName).HasColumnType("text");
 
-        builder.Property(c => c.Message).HasColumnType("nvarchar(max)");
+        builder.Property(c => c.Message).HasColumnType("text");
 
-        builder.Property(c => c.MessageTemplate).HasColumnType("nvarchar(max)");
+        builder.Property(c => c.MessageTemplate).HasColumnType("text");
 
-        builder.Property(c => c.Level).HasColumnType("nvarchar(128)");
+        builder.Property(c => c.Level).HasColumnType("varchar(128)");
 
-        builder.Property(c => c.Exception).HasColumnType("nvarchar(max)");
+        builder.Property(c => c.Exception).HasColumnType("text");
 
         builder.ToTable("Log");
     }

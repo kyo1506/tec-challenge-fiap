@@ -1,3 +1,4 @@
+using NewRelic.LogEnrichers.Serilog;
 using NpgsqlTypes;
 using Serilog;
 using Serilog.Events;
@@ -40,20 +41,18 @@ public static class LoggingConfiguration
             .Enrich.WithProcessId()
             .Enrich.WithMachineName()
             .Enrich.WithEnvironmentName()
+            .Enrich.WithNewRelicLogsInContext()
             .WriteTo.Console()
             .WriteTo.File(
                 path: "logs/log-.json",
                 rollingInterval: RollingInterval.Day,
                 rollOnFileSizeLimit: true,
                 retainedFileCountLimit: 7,
-                formatter: new JsonFormatter()
+                formatter: new NewRelicFormatter()
             )
             .WriteTo.PostgreSQL(
                 connectionString: connectionString,
                 tableName: "Log",
-                columnOptions: columnWriters,
-                // --- CORRECTED LINE ---
-                // Let Entity Framework Migrations handle table creation.
                 needAutoCreateTable: false,
                 respectCase: true
             )

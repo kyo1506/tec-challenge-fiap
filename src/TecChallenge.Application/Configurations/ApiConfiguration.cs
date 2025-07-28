@@ -70,14 +70,14 @@ public static class ApiConfiguration
             app.UseCors();
         }
 
-        app.UseHsts();
+        //TODO: Remover após implantar o deploy usando certificado SSL HTTPS
+        // app.UseHsts();
+        // app.UseHttpsRedirection();
 
         app.UseSerilogRequestLogging(options =>
         {
             options.GetLevel = (httpContext, elapsed, ex) => LogEventLevel.Information;
         });
-
-        app.UseHttpsRedirection();
 
         app.UseRouting();
 

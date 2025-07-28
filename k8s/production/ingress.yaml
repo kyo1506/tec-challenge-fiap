@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: tec-challenge-ingress
   namespace: production
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
   rules:
@@ -12,6 +14,6 @@ spec:
           service:
             name: tec-challenge-service
             port:
-              number: 8080
-        path: /
+              number: 8081
+        path: /()(.*)
         pathType: Prefix

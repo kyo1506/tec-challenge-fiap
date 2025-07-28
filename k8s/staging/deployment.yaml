@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tec-challenge-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tec-challenge
+  template:
+    metadata:
+      labels:
+        app: tec-challenge
+    spec:
+      containers:
+      - name: tec-challenge-container
+        image: IMAGE_TAG_PLACEHOLDER
+        ports:
+        - containerPort: 5001
+        envFrom:
+        - configMapRef:
+            name: tec-challenge-configmap
+        - secretRef:
+            name: tec-challenge-secret

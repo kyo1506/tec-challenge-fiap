@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tec-challenge-ingress
+  annotations:
+    # Esta anotação é importante se sua API espera caminhos como /api/health
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      # Roteia todo o tráfego da raiz (/) para sua aplicação
+      - path: /()(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: tec-challenge-service
+            port:
+              number: 5001

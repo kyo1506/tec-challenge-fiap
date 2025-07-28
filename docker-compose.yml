@@ -23,9 +23,9 @@ services:
     environment:
         ASPNETCORE_ENVIRONMENT: Local 
         DOTNET_RUNNING_IN_CONTAINER: "true"
-        ASPNETCORE_URLS: "http://+:5001" 
+        ASPNETCORE_URLS: "http://+:8080" 
     ports:
-      - "5001:5001"
+      - "8080:8080"
     restart: on-failure
     depends_on:
       postgres-db:

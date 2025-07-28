@@ -4,7 +4,7 @@ WORKDIR /src
 
 ENV HOME=/app
 ENV PATH="${PATH}:${HOME}/.dotnet/tools"
-ENV ASPNETCORE_URLS=http://+:5001
+ENV ASPNETCORE_URLS=http://+:8080
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 # This installs the necessary ICU libraries that provide culture data (like pt-BR) for Alpine Linux.
@@ -27,7 +27,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS final
 WORKDIR /app
 
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
-ENV ASPNETCORE_URLS=http://+:5001
+ENV ASPNETCORE_URLS=http://+:8080
 ENV HOME=/app
 
 RUN apk add --no-cache icu-libs
@@ -39,7 +39,7 @@ COPY --from=build /app/publish .
 RUN chown -R 0:0 /app && \
     chmod -R g+w /app
 
-EXPOSE 5001
+EXPOSE 8080
 
 # The entrypoint should now correctly point to your application's DLL
 ENTRYPOINT ["dotnet", "TecChallenge.Application.dll"]

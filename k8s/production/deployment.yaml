@@ -16,7 +16,7 @@ spec:
       - name: tec-challenge-container
         image: IMAGE_TAG_PLACEHOLDER
         ports:
-        - containerPort: 5001
+        - containerPort: 8080
         envFrom:
         - configMapRef:
             name: tec-challenge-configmap

@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tec-challenge-ingress-production
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx # <-- Nova forma, mais limpa
+  rules:
+  - http:
+      paths:
+      # Roteia todo o tráfego que começa com /dev para este ambiente
+      - path: /prod
+        pathType: Prefix
+        backend:
+          service:
+            name: tec-challenge-service
+            port:
+              number: 5001

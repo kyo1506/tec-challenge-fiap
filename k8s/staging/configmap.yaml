@@ -4,8 +4,6 @@ metadata:
   name: tec-challenge-configmap
   namespace: staging
 data:
-  DOTNET_SYSTEM_NET_SOCKETS_PREFERIPV4OVERIPV6: "true"
-
   # Configurações Gerais
   ASPNETCORE_URLS: "http://+:5001"
   DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "false"

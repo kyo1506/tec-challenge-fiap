@@ -5,7 +5,7 @@ metadata:
   namespace: production
 data:
   # Configurações Gerais
-  ASPNETCORE_URLS: "http://+:8081"
+  ASPNETCORE_URLS: "http://+:80"
   DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "false"
   AllowedHosts: "*"
   UrlPortal: "http://localhost:4196"
@@ -21,7 +21,7 @@ data:
   EmailConfiguration__Bcc: ""
 
   # Configurações JWT (não sensíveis)
-  JwtOptions__Issuer: "http://localhost:8081"
+  JwtOptions__Issuer: "http://localhost:80"
   JwtOptions__Audience: "http://localhost:4196"
   JwtOptions__AccessTokenExpiration: "3600"
   JwtOptions__RefreshTokenExpiration: "7200"

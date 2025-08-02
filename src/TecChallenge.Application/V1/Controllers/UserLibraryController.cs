@@ -7,15 +7,15 @@ namespace TecChallenge.Application.V1.Controllers;
 
 [Authorize]
 [ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/user-libraries")]
+[Route("v{version:apiVersion}/user-libraries")]
 [Produces("application/json")]
 public class UserLibraryController(
     INotifier notifier,
     IUser appUser,
     IHttpContextAccessor httpContextAccessor,
     IWebHostEnvironment webHostEnvironment,
-    IUserLibraryRepository userLibraryRepository)
-    : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
+    IUserLibraryRepository userLibraryRepository
+) : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
 {
     /// <summary>
     /// Get a user's game library
@@ -32,9 +32,11 @@ public class UserLibraryController(
         var userLibrary = await userLibraryRepository.FirstOrDefaultAsync(
             x => x.UserId == userId,
             false,
-            x => x.Items);
+            x => x.Items
+        );
 
-        if (userLibrary != null) return CustomResponse(data: userLibrary.MapToDto());
+        if (userLibrary != null)
+            return CustomResponse(data: userLibrary.MapToDto());
 
         NotifyError("User library not found");
 

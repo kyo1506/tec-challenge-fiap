@@ -1,4 +1,4 @@
-# 🎮 Tech Challenge - Fase 1
+# 🎮 Tech Challenge - Fase 2
 
 **Plataforma de Venda de Jogos Digitais e Gestão de Transações Financeiras**
 
@@ -33,7 +33,7 @@ O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **inj
 
 ## 🔗 Endpoints da API
 
-### 🛡️ Autenticação (`/api/v1/auth`)
+### 🛡️ Autenticação (`/v1/auth`)
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET    | `/` | Listar todos os usuários |
@@ -49,7 +49,7 @@ O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **inj
 | GET    | `/confirm-email/{email}` | Enviar link de confirmação de e-mail |
 | POST   | `/confirm-email` | Confirmar e-mail |
 
-### 🎮 Jogos (`/api/v1/games`)
+### 🎮 Jogos (`/v1/games`)
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET    | `/` | Listar todos os jogos |
@@ -58,7 +58,7 @@ O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **inj
 | PUT    | `/{id}` | Atualizar jogo |
 | DELETE | `/{id}` | Excluir jogo |
 
-### 🏷️ Promoções (`/api/v1/promotions`)
+### 🏷️ Promoções (`/v1/promotions`)
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET    | `/` | Listar promoções ativas |
@@ -70,7 +70,7 @@ O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **inj
 | PUT    | `/promotion-games/{promotionGameId}` | Atualizar item da promoção |
 | DELETE | `/promotion-games/{promotionGameId}` | Remover jogo da promoção |
 
-### 💰 Transações (`/api/v1/transactions`)
+### 💰 Transações (`/v1/transactions`)
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | POST   | `/purchase` | Comprar jogo |
@@ -78,7 +78,7 @@ O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **inj
 | POST   | `/deposit` | Depositar saldo |
 | PUT    | `/withdraw` | Sacar saldo |
 
-### 📚 Biblioteca (`/api/v1/user-libraries`)
+### 📚 Biblioteca (`/v1/user-libraries`)
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET    | `/{userId}` | Consultar jogos adquiridos |
@@ -150,9 +150,7 @@ Utilizamos as seguintes ferramentas para monitoramento:
 
 ### Endpoints de Monitoramento
 
-* **`/api/health`**: Retorna um JSON detalhado com o status de cada Health Check configurado.
-
-* **`/api/monitor`**: Apresenta uma interface gráfica amigável (HealthChecksUI) para visualizar o histórico e o status atual dos Health Checks.
+* **`/health`**: Retorna um JSON detalhado com o status de cada Health Check configurado.
 
 ---
 
@@ -214,7 +212,7 @@ Utilize-os para fazer login e testar as funcionalidades da aplicação.
 
 ## 🔐 Autenticação da API
 
-1. Acesse `/api/v1/auth/login` e faça login 
+1. Acesse `/v1/auth/login` e faça login 
 2. Copie o `accessToken` retornado 
 3. Utilize no header `Authorization: Bearer {seu_token}` 
 4. Quando necessário, renove com `/refresh-token`

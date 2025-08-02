@@ -94,7 +94,7 @@ public static class ApiConfiguration
             endpoints.MapControllers();
 
             endpoints.MapHealthChecks(
-                "/api/health",
+                "/health",
                 new HealthCheckOptions
                 {
                     ResponseWriter = async (context, report) =>

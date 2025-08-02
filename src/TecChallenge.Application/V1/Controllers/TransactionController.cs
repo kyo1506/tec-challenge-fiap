@@ -8,15 +8,15 @@ namespace TecChallenge.Application.V1.Controllers;
 
 [Authorize]
 [ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/transactions")]
+[Route("v{version:apiVersion}/transactions")]
 [Produces("application/json")]
 public class TransactionController(
     INotifier notifier,
     IUser appUser,
     IHttpContextAccessor httpContextAccessor,
     IWebHostEnvironment webHostEnvironment,
-    ITransactionService transactionService)
-    : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
+    ITransactionService transactionService
+) : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
 {
     /// <summary>
     /// Process a game purchase transaction
@@ -31,19 +31,29 @@ public class TransactionController(
     [HttpPost("purchase")]
     [ProducesResponseType(typeof(Root<PurchaseResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Root<PurchaseResponse>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Root<PurchaseResponse>>> PurchaseGame(PurchaseGameRequest request)
+    public async Task<ActionResult<Root<PurchaseResponse>>> PurchaseGame(
+        PurchaseGameRequest request
+    )
     {
         try
         {
-            if (!ModelState.IsValid) return CustomModelStateResponse<PurchaseResponse>(ModelState);
+            if (!ModelState.IsValid)
+                return CustomModelStateResponse<PurchaseResponse>(ModelState);
 
-            return CustomResponse(await transactionService.ProcessPurchaseAsync(
-                userId: request.UserId,
-                gameId: request.GameId,
-                promotionGameId: request.PromotionGameId));
+            return CustomResponse(
+                await transactionService.ProcessPurchaseAsync(
+                    userId: request.UserId,
+                    gameId: request.GameId,
+                    promotionGameId: request.PromotionGameId
+                )
+            );
         }
-        catch (Exception e) when (
-            e is PromotionNotApplicableException or InsufficientBalanceException or DomainException)
+        catch (Exception e)
+            when (e
+                    is PromotionNotApplicableException
+                        or InsufficientBalanceException
+                        or DomainException
+            )
         {
             NotifyError(e.Message);
             return CustomResponse<PurchaseResponse>(statusCode: HttpStatusCode.BadRequest);
@@ -61,14 +71,21 @@ public class TransactionController(
     [HttpPut("refund-purchase")]
     [ProducesResponseType(typeof(Root<RefundResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Root<RefundResponse>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Root<RefundResponse>>> RefundedPurchase(RefundPurchaseRequest request)
+    public async Task<ActionResult<Root<RefundResponse>>> RefundedPurchase(
+        RefundPurchaseRequest request
+    )
     {
         try
         {
-            if (!ModelState.IsValid) return CustomModelStateResponse<RefundResponse>(ModelState);
+            if (!ModelState.IsValid)
+                return CustomModelStateResponse<RefundResponse>(ModelState);
 
             return CustomResponse(
-                await transactionService.RefundedPurchaseAsync(userId: request.UserId, gameId: request.GameId));
+                await transactionService.RefundedPurchaseAsync(
+                    userId: request.UserId,
+                    gameId: request.GameId
+                )
+            );
         }
         catch (Exception e) when (e is DomainException)
         {
@@ -92,10 +109,15 @@ public class TransactionController(
     {
         try
         {
-            if (!ModelState.IsValid) return CustomModelStateResponse<DepositResponse>(ModelState);
+            if (!ModelState.IsValid)
+                return CustomModelStateResponse<DepositResponse>(ModelState);
 
             return CustomResponse(
-                await transactionService.DepositAsync(userId: request.UserId, amount: request.Amount));
+                await transactionService.DepositAsync(
+                    userId: request.UserId,
+                    amount: request.Amount
+                )
+            );
         }
         catch (Exception e) when (e is DomainException)
         {
@@ -120,10 +142,15 @@ public class TransactionController(
     {
         try
         {
-            if (!ModelState.IsValid) return CustomModelStateResponse<WithdrawalResponse>(ModelState);
+            if (!ModelState.IsValid)
+                return CustomModelStateResponse<WithdrawalResponse>(ModelState);
 
             return CustomResponse(
-                await transactionService.WithdrawalAsync(userId: request.UserId, amount: request.Amount));
+                await transactionService.WithdrawalAsync(
+                    userId: request.UserId,
+                    amount: request.Amount
+                )
+            );
         }
         catch (Exception e) when (e is InsufficientBalanceException or DomainException)
         {

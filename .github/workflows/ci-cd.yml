@@ -29,7 +29,8 @@ jobs:
         run: dotnet restore
 
       - name: Run tests
-        run: dotnet test --no-build --verbosity normal # Executa os testes sem reconstruir o projeto
+        # Aponta diretamente para o arquivo .csproj do projeto de testes
+        run: dotnet test src/TecChallenge.Tests/TecChallenge.Tests.csproj --no-build --verbosity normal
       # --- Fim da Seção de Testes ---
 
       - name: Configure AWS credentials

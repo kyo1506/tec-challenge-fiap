@@ -184,9 +184,9 @@ docker-compose up
 ```
 
 A aplicação estará acessível em:
-- API: http://localhost:5000
-- Swagger: http://localhost:5000/swagger
-- Health Check: http://localhost:5000/health
+- API: http://localhost:5001
+- Swagger: http://localhost:5001/swagger
+- Health Check: http://localhost:5001/health
 
 ## Usuários Padrão (Seed)
 

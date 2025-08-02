@@ -120,7 +120,7 @@ O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **inj
 - **Validação**: Data Annotations, FluentValidation, EF Mapping  
 - **Documentação**: OpenAPI / Swagger 3.0.4  
 - **Serviços**: Serviço de e-mail mockado (por segurança)  
-- **Banco de dados**: SQL Server  
+- **Banco de dados**: Postgresql 
 
 ---
 

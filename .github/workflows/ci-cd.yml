@@ -19,6 +19,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # --- Início da Seção de Testes ---
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x' # Garanta que esta versão corresponde à do seu projeto
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run tests
+        run: dotnet test --no-build --verbosity normal # Executa os testes sem reconstruir o projeto
+      # --- Fim da Seção de Testes ---
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:

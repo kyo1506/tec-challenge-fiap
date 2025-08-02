@@ -15,7 +15,7 @@ namespace TecChallenge.Application.V1.Controllers;
 
 [Authorize]
 [ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/auth")]
+[Route("v{version:apiVersion}/auth")]
 [Produces("application/json")]
 public class AuthController(
     INotifier notifier,
@@ -171,7 +171,7 @@ public class AuthController(
     /// The information received by the user's email must be used in the request
     /// The password must contain at least 8 digits, an uppercase letter, a lowercase letter, a number and a special character
     ///
-    ///     POST /api/v1/auth/reset-password
+    ///     POST /v1/auth/reset-password
     ///     {
     ///       "token": "string",
     ///       "email": "user@example.com",
@@ -374,7 +374,7 @@ public class AuthController(
     /// <remarks>
     /// It will only be possible to register an account if the user is logged in and the email must be valid
     ///
-    ///     POST /api/v1/auth/register
+    ///     POST /v1/auth/register
     ///     {
     ///         "email": "teste@atento.com",
     ///         "roleName": "Administrador",
@@ -561,7 +561,7 @@ public class AuthController(
     /// <remarks>
     /// The password must contain at least 8 digits, an uppercase letter, a lowercase letter, a number and a special character
     ///
-    ///     POST /api/v1/auth/first-access
+    ///     POST /v1/auth/first-access
     ///     {
     ///       "token": null,
     ///       "email": "user@example.com",
@@ -650,7 +650,7 @@ public class AuthController(
     /// <remarks>
     /// It is not possible to leave the value field of UserClaims empty, as this will break the operation access validation logic
     ///
-    ///     PUT /api/v1/auth/{id:guid}
+    ///     PUT /v1/auth/{id:guid}
     ///     {
     ///       "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ///       "username": "string",

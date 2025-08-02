@@ -8,7 +8,7 @@ on:
 
 env:
   ECR_REPOSITORY: fiap-aws/tec-challenge
-  EKS_CLUSTER_NAME: tec-challenge-fiap-cluster2
+  EKS_CLUSTER_NAME: tec-challenge-fiap-cluster
   AWS_REGION: sa-east-1
 
 jobs:
@@ -46,6 +46,7 @@ jobs:
       - name: Deploy to EKS
         run: |
           # Substitui o placeholder no arquivo de produção
+          # Use 'g' para substituir todas as ocorrências e 's' para substituir
           sed -i 's|IMAGE_TAG_PLACEHOLDER|${{ steps.build-image.outputs.image }}|g' k8s/production/deployment.yaml
           
           # Aplica todos os arquivos no namespace de produção

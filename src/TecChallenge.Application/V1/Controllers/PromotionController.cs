@@ -8,7 +8,7 @@ namespace TecChallenge.Application.V1.Controllers;
 
 [Authorize(Roles = "Admin")]
 [ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/promotions")]
+[Route("v{version:apiVersion}/promotions")]
 [Produces("application/json")]
 public class PromotionController(
     INotifier notifier,
@@ -16,8 +16,8 @@ public class PromotionController(
     IHttpContextAccessor httpContextAccessor,
     IWebHostEnvironment webHostEnvironment,
     IPromotionRepository promotionRepository,
-    IPromotionService promotionService)
-    : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
+    IPromotionService promotionService
+) : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
 {
     /// <summary>
     /// Retrieves all active promotions
@@ -28,8 +28,7 @@ public class PromotionController(
     [ProducesResponseType(typeof(Root<IEnumerable<PromotionResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<Root<IEnumerable<PromotionResponse>>>> GetAllPromotions()
     {
-        var promotions = (await promotionRepository.GetAllAsync())
-            .Select(g => g.MapToDto());
+        var promotions = (await promotionRepository.GetAllAsync()).Select(g => g.MapToDto());
 
         return CustomResponse(data: promotions);
     }
@@ -46,9 +45,13 @@ public class PromotionController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Root<PromotionResponse>>> GetPromotionById(Guid id)
     {
-        var promotion = await promotionRepository.FirstOrDefaultAsync(x => x.Id == id, includes: x => x.GamesOnSale);
+        var promotion = await promotionRepository.FirstOrDefaultAsync(
+            x => x.Id == id,
+            includes: x => x.GamesOnSale
+        );
 
-        if (promotion != null) return CustomResponse(data: promotion.MapToDto());
+        if (promotion != null)
+            return CustomResponse(data: promotion.MapToDto());
 
         NotifyError("Promotion not found");
 
@@ -67,7 +70,8 @@ public class PromotionController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Root<PromotionResponse>>> AddPromotion(PromotionAddRequest model)
     {
-        if (!ModelState.IsValid) return CustomModelStateResponse<PromotionResponse>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<PromotionResponse>(ModelState);
 
         var entity = model.MapToEntity();
 
@@ -95,7 +99,10 @@ public class PromotionController(
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Root<PromotionResponse>>> UpdatePromotion(Guid id, PromotionUpdateRequest model)
+    public async Task<ActionResult<Root<PromotionResponse>>> UpdatePromotion(
+        Guid id,
+        PromotionUpdateRequest model
+    )
     {
         if (id != model.Id)
         {
@@ -103,7 +110,8 @@ public class PromotionController(
             return CustomResponse<PromotionResponse>();
         }
 
-        if (!ModelState.IsValid) return CustomModelStateResponse<PromotionResponse>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<PromotionResponse>(ModelState);
 
         var result = await promotionService.UpdateAsync(id, model.MapToEntity());
 
@@ -148,13 +156,19 @@ public class PromotionController(
     /// <response code="400">Invalid data or game already in promotion</response>
     /// <response code="404">Promotion not found</response>
     [HttpPost("{promotionId:guid}/promotion-games")]
-    [ProducesResponseType(typeof(Root<IEnumerable<PromotionGameResponse>>), StatusCodes.Status201Created)]
+    [ProducesResponseType(
+        typeof(Root<IEnumerable<PromotionGameResponse>>),
+        StatusCodes.Status201Created
+    )]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Root<IEnumerable<PromotionGameResponse>>>> AddPromotionGame(Guid promotionId,
-        List<PromotionGameAddRequest> model)
+    public async Task<ActionResult<Root<IEnumerable<PromotionGameResponse>>>> AddPromotionGame(
+        Guid promotionId,
+        List<PromotionGameAddRequest> model
+    )
     {
-        if (!ModelState.IsValid) return CustomModelStateResponse<IEnumerable<PromotionGameResponse>>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<IEnumerable<PromotionGameResponse>>(ModelState);
 
         var entities = model.Select(x => x.MapToEntity()).ToList();
 
@@ -167,11 +181,14 @@ public class PromotionController(
 
         if (result != null)
             return !result.Value
-                ? CustomResponse<IEnumerable<PromotionGameResponse>>(statusCode: HttpStatusCode.BadRequest)
-                : CustomResponse(data: entities.Select(x => x.MapToDto()),
-                    HttpStatusCode.Created);
+                ? CustomResponse<IEnumerable<PromotionGameResponse>>(
+                    statusCode: HttpStatusCode.BadRequest
+                )
+                : CustomResponse(data: entities.Select(x => x.MapToDto()), HttpStatusCode.Created);
 
-        return CustomResponse<IEnumerable<PromotionGameResponse>>(statusCode: HttpStatusCode.NotFound);
+        return CustomResponse<IEnumerable<PromotionGameResponse>>(
+            statusCode: HttpStatusCode.NotFound
+        );
     }
 
     /// <summary>
@@ -188,7 +205,8 @@ public class PromotionController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Root<PromotionGameResponse>>> UpdatePromotionGame(
         Guid promotionGameId,
-        PromotionGameUpdateRequest model)
+        PromotionGameUpdateRequest model
+    )
     {
         if (!ModelState.IsValid)
             return CustomModelStateResponse<PromotionGameResponse>(ModelState);
@@ -216,7 +234,9 @@ public class PromotionController(
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Root<PromotionGameResponse>>> RemovePromotionGame(Guid promotionGameId)
+    public async Task<ActionResult<Root<PromotionGameResponse>>> RemovePromotionGame(
+        Guid promotionGameId
+    )
     {
         var result = await promotionService.DeletePromotionGameAsync(promotionGameId);
 

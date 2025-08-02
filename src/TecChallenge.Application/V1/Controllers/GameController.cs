@@ -8,7 +8,7 @@ namespace TecChallenge.Application.V1.Controllers;
 
 [Authorize(Roles = "Admin")]
 [ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/games")]
+[Route("v{version:apiVersion}/games")]
 [Produces("application/json")]
 public class GameController(
     INotifier notifier,
@@ -16,8 +16,8 @@ public class GameController(
     IHttpContextAccessor httpContextAccessor,
     IWebHostEnvironment webHostEnvironment,
     IGameRepository gameRepository,
-    IGameService gameService)
-    : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
+    IGameService gameService
+) : MainController(notifier, appUser, httpContextAccessor, webHostEnvironment)
 {
     /// <summary>
     /// Get all available games
@@ -48,7 +48,8 @@ public class GameController(
     {
         var game = await gameRepository.GetByIdAsync(id);
 
-        if (game != null) return CustomResponse(data: game.MapToDto());
+        if (game != null)
+            return CustomResponse(data: game.MapToDto());
 
         NotifyError("Game not found");
         return CustomResponse<GameResponse>(statusCode: HttpStatusCode.NotFound);
@@ -66,13 +67,16 @@ public class GameController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Root<GameResponse>>> AddGame(GameAddRequest model)
     {
-        if (!ModelState.IsValid) return CustomModelStateResponse<GameResponse>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<GameResponse>(ModelState);
 
         var entity = model.MapToEntity();
 
         var result = await gameService.AddAsync(entity);
 
-        return result ? CustomResponse(data: entity.MapToDto(), statusCode: HttpStatusCode.Created) : CustomResponse<GameResponse>(statusCode: HttpStatusCode.BadRequest);
+        return result
+            ? CustomResponse(data: entity.MapToDto(), statusCode: HttpStatusCode.Created)
+            : CustomResponse<GameResponse>(statusCode: HttpStatusCode.BadRequest);
     }
 
     /// <summary>
@@ -96,7 +100,8 @@ public class GameController(
             return CustomResponse<GameResponse>();
         }
 
-        if (!ModelState.IsValid) return CustomModelStateResponse<GameResponse>(ModelState);
+        if (!ModelState.IsValid)
+            return CustomModelStateResponse<GameResponse>(ModelState);
 
         var result = await gameService.UpdateAsync(id, model.MapToEntity());
 

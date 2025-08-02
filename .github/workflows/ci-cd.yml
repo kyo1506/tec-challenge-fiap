@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
@@ -28,7 +28,7 @@ jobs:
         run: dotnet restore
 
       - name: Run tests
-        run: dotnet test TecChallenge.sln --no-build --verbosity normal
+        run: dotnet test --no-build --verbosity normal
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

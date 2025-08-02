@@ -8,10 +8,10 @@
 
 A API desenvolvida oferece uma solução completa para comercialização de jogos digitais, com funcionalidades que abrangem:
 
-- 🔐 **Autenticação e Autorização**: Registro, login, redefinição de senha e confirmação de e-mail 
-- 🕹️ **Gestão de Jogos**: Cadastro completo do catálogo de jogos 
-- 💸 **Promoções**: Criação e gerenciamento de descontos promocionais 
-- 💳 **Transações Financeiras**: Compra, reembolso, depósito e saque de saldo 
+- 🔐 **Autenticação e Autorização**: Registro, login, redefinição de senha e confirmação de e-mail  
+- 🕹️ **Gestão de Jogos**: Cadastro completo do catálogo de jogos  
+- 💸 **Promoções**: Criação e gerenciamento de descontos promocionais  
+- 💳 **Transações Financeiras**: Compra, reembolso, depósito e saque de saldo  
 - 📚 **Biblioteca do Usuário**: Armazenamento e gerenciamento dos jogos adquiridos
 
 ---
@@ -22,11 +22,11 @@ O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **inj
 
 ### 🔧 Camadas
 
-- **Application** – Camada de orquestração da lógica de aplicação 
-- **Domain** – Regras de negócio e entidades do domínio 
-- **Data** – Implementações de repositórios e acesso a dados 
-- **Infrastructure** – Integrações externas (como serviços de e-mail) 
-- **Shared** – DTOs, modelos base, Requests/Responses e validações
+- **Application** – Camada de orquestração da lógica de aplicação  
+- **Domain** – Regras de negócio e entidades do domínio  
+- **Data** – Implementações de repositórios e acesso a dados  
+- **Infrastructure** – Integrações externas (como serviços de e-mail)  
+- **Shared** – DTOs, modelos base, Requests/Responses e validações  
 - **Tests** – Contém os testes unitários da aplicação
 
 ---
@@ -88,109 +88,111 @@ O projeto segue os princípios de **Domain-Driven Design (DDD)** e utiliza **inj
 ## 📦 Modelos de Dados
 
 ### 🔐 Autenticação
-- `LoginDto`: E-mail e senha 
-- `CreateUserDto`: Cadastro de usuário com e-mail, permissões e role 
-- `UserDto`: Dados completos do usuário 
-- `ChangePasswordDto`: Redefinição de senha 
+- `LoginDto`: E-mail e senha  
+- `CreateUserDto`: Cadastro de usuário com e-mail, permissões e role  
+- `UserDto`: Dados completos do usuário  
+- `ChangePasswordDto`: Redefinição de senha  
 
 ### 🎮 Jogos
-- `GameAddRequest`: Nome e preço do jogo 
-- `GameUpdateRequest`: Dados completos do jogo 
-- `GameResponse`: ID, nome, status, preço e datas 
+- `GameAddRequest`: Nome e preço do jogo  
+- `GameUpdateRequest`: Dados completos do jogo  
+- `GameResponse`: ID, nome, status, preço e datas  
 
 ### 🏷️ Promoções
-- `PromotionAddRequest`: Nome, datas e jogos da promoção 
-- `PromotionGameAddRequest`: ID do jogo e percentual de desconto 
-- `PromotionResponse`: Dados da promoção 
+- `PromotionAddRequest`: Nome, datas e jogos da promoção  
+- `PromotionGameAddRequest`: ID do jogo e percentual de desconto  
+- `PromotionResponse`: Dados da promoção  
 
 ### 💳 Transações
-- `PurchaseGameRequest`: ID do usuário, jogo e promoção (opcional) 
-- `BalanceRequest`: ID do usuário e valor 
-- `RefundPurchaseRequest`: ID do usuário e jogo 
+- `PurchaseGameRequest`: ID do usuário, jogo e promoção (opcional)  
+- `BalanceRequest`: ID do usuário e valor  
+- `RefundPurchaseRequest`: ID do usuário e jogo  
 
 ---
 
 ## ⚙️ Recursos Técnicos
 
-- **Linguagem**: C# 
-- **Framework**: ASP.NET Core (.NET 9) 
-- **Arquitetura**: MVC + DDD 
-- **Testes**: TDD 
-- **Autenticação**: JWT com refresh token 
-- **Validação**: Data Annotations, FluentValidation, EF Mapping 
-- **Documentação**: OpenAPI / Swagger 3.0.4 
-- **Serviços**: Serviço de e-mail mockado (por segurança)
-- **Banco de dados**: SQL Server
+- **Linguagem**: C#  
+- **Framework**: ASP.NET Core (.NET 9)  
+- **Arquitetura**: MVC + DDD  
+- **Testes**: TDD  
+- **Autenticação**: JWT com refresh token  
+- **Validação**: Data Annotations, FluentValidation, EF Mapping  
+- **Documentação**: OpenAPI / Swagger 3.0.4  
+- **Serviços**: Serviço de e-mail mockado (por segurança)  
+- **Banco de dados**: SQL Server  
 
 ---
 
 ## ✅ Testes
 
-Para garantir a qualidade e a confiabilidade do sistema, a aplicação foi desenvolvida seguindo os princípios de **Test-Driven Development (TDD)**, com uma cobertura abrangente de testes unitários.
+A aplicação segue os princípios de **Test-Driven Development (TDD)**, com testes unitários que validam regras de negócio, fluxos de uso, exceções e comportamentos esperados.
 
-Os testes foram implementados utilizando as seguintes ferramentas e bibliotecas:
+Utiliza:
 
-* **xUnit**: Framework de testes para .NET.
-* **Moq**: Biblioteca para criação de mocks, facilitando o isolamento de dependências e o teste de unidades de código.
-* **FluentAssertions**: Biblioteca que oferece uma sintaxe fluente e legível para a verificação de resultados de testes.
-
-Cada serviço e funcionalidade crítica possui seus respectivos testes, garantindo que as regras de negócio sejam validadas e que o comportamento do sistema seja o esperado em diferentes cenários, incluindo casos de sucesso, falhas, exceções e validações de domínio.
+- **xUnit**  
+- **Moq**  
+- **FluentAssertions**  
 
 ---
 
 ## 📈 Monitoramento e Health Checks
 
-A aplicação incorpora **Health Checks** para monitorar a saúde dos seus componentes e dependências críticas. Isso permite uma visibilidade em tempo real sobre o status da API e de serviços externos, como o banco de dados.
+A aplicação possui um único endpoint de verificação de saúde:
 
-Utilizamos as seguintes ferramentas para monitoramento:
+- **`/health`**: Retorna um JSON com o status da API e dependências como banco de dados.
 
-* **ASP.NET Core Health Checks**: Para verificar a disponibilidade de serviços e dependências.
-
-* **HealthChecksUI**: Uma interface de usuário para visualizar o status dos Health Checks de forma intuitiva.
-
-### Endpoints de Monitoramento
-
-* **`/health`**: Retorna um JSON detalhado com o status de cada Health Check configurado.
+> 🔄 A interface gráfica **HealthChecksUI** foi removida para simplificar o monitoramento.
 
 ---
 
 ## 🧠 Regras de Negócio
 
 ### 🔐 Autenticação
-- Senha segura (mín. 8 caracteres, maiúscula, minúscula, número e caractere especial) 
-- Confirmação de e-mail obrigatória 
-- Controle de acesso por roles e claims 
+- Senha forte (mín. 8 caracteres, maiúscula, minúscula, número e caractere especial)  
+- Confirmação de e-mail obrigatória  
+- Controle de acesso baseado em roles e claims  
 
 ### 💳 Transações
-- Validação de saldo 
-- Prevenção de compras duplicadas 
-- Reembolso com regras de elegibilidade 
-- Aplicação automática de promoções válidas 
+- Validação de saldo  
+- Prevenção de compras duplicadas  
+- Regras para reembolso  
+- Aplicação automática de promoções válidas  
 
 ### 🏷️ Promoções
-- Datas válidas (início < fim) 
-- Descontos entre 1% e 100% 
-- Proibição de remover jogos com compras vinculadas 
+- Datas válidas (início < fim)  
+- Descontos entre 1% e 100%  
+- Não remover jogos com compras vinculadas  
 
 ### 🎮 Jogos
-- Nome único por jogo 
+- Nome único por jogo  
 
 ### 📚 Biblioteca
-- Sem duplicação de jogos para o mesmo usuário 
+- Sem duplicações de jogos para o mesmo usuário  
 
 ---
 
 ## 🚀 Como Executar
 
-1. Clone o repositório 
-2. Configure a string de conexão em `appsettings.json` 
-3. Execute as migrações do banco de dados 
-4. Compile e execute o projeto 
-5. Acesse a documentação Swagger: `/swagger`
+### Utilizando Docker
 
-**Após a execução das migrações, por fim, ao executar o projeto Application pela primeira vez, o serviço de Seed gerará os usuários abaixo:**
+Na raiz do projeto, execute:
 
-ADMIN
+```bash
+docker-compose build --no-cache
+docker-compose up
+```
+
+A aplicação estará acessível em:
+- API: http://localhost:5000
+- Swagger: http://localhost:5000/swagger
+- Health Check: http://localhost:5000/health
+
+## Usuários Padrão (Seed)
+
+Após o primeiro build da aplicação, o serviço de Seed criará os seguintes usuários:
+
+### ADMIN
 ```json
 {
   "email": "vinicius_pinheiro05@hotmail.com",
@@ -198,7 +200,7 @@ ADMIN
 }
 ```
 
-USER
+### USER
 ```json
 {
   "email": "vinicius_pinheiro02@hotmail.com",

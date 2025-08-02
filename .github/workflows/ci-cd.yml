@@ -18,20 +18,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # --- Início da Seção de Testes ---
+        
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x' # Garanta que esta versão corresponde à do seu projeto
+          dotnet-version: '9.0.x'
 
       - name: Restore dependencies
         run: dotnet restore
 
       - name: Run tests
-        # Aponta diretamente para o arquivo .csproj do projeto de testes
-        run: dotnet test src/TecChallenge.Tests/TecChallenge.Tests.csproj --no-build --verbosity normal
-      # --- Fim da Seção de Testes ---
+        run: dotnet test TecChallenge.sln --no-build --verbosity normal
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
